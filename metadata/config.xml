@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module configVersion="1.0">
+	
+	<!-- Base Module Properties -->
+	<id>reportingrest</id>
+	<name>reportingrest</name>
+	<version>1.0</version>
+	<package>org.openmrs.module.@MODULE_ID@</package>
+	<author>Partners In Health</author>
+	<description>RESTful Web Services for the reporting module</description>
+	<activator>@MODULE_PACKAGE@.ModuleActivator</activator>
+	<require_version>1.9</require_version>
+	
+	<require_modules>
+	   	<require_module>org.openmrs.module.serialization.xstream</require_module>
+	   	<require_module>org.openmrs.module.reporting</require_module>
+	   	<require_module>org.openmrs.module.webservices.rest</require_module>
+	</require_modules>
+
+	<messages>
+		<lang>en</lang>
+		<file>messages.properties</file>
+	</messages>
+	
+</module>
