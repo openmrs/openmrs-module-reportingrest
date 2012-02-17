@@ -14,7 +14,7 @@
 package org.openmrs.module.reportingrest.web.controller;
 
 import org.openmrs.module.reportingrest.web.resource.ReportRequestResource;
-import org.openmrs.module.webservices.rest.web.controller.BaseCrudController;
+import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseCrudController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 

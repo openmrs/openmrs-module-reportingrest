@@ -13,23 +13,29 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import java.util.List;
+
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.Definition;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
+import org.openmrs.module.webservices.rest.web.resource.api.SearchResult;
+import org.openmrs.module.webservices.rest.web.resource.api.Searchable;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.MetadataDelegatingCrudResource;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 /**
  * Base {@link Resource} for {@link Definition}s, supporting standard CRUD operations
  */
-public abstract class BaseDefinitionResource<T extends Definition> extends MetadataDelegatingCrudResource<T> {
+public abstract class BaseDefinitionResource<T extends Definition> extends MetadataDelegatingCrudResource<T> implements Searchable {
 	
 	/**
 	 * @return the definition type that this resource wraps
@@ -70,6 +76,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	 */
 	@Override
 	public void delete(T definition, String reason, RequestContext context) throws ResponseException {
+		definition.setRetireReason(reason);
 		DefinitionContext.retireDefinition(definition);
 	}
 	
@@ -87,7 +94,11 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
 		DelegatingResourceDescription description = null;
+		
+		
 		// TODO: Add more properties below, particularly parameters
+		
+		
 		if (rep instanceof DefaultRepresentation) {
 			description = new DelegatingResourceDescription();
 			description.addProperty("uuid");
@@ -105,4 +116,17 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		}
 		return description;
 	}
+	
+	/**
+	 * @see org.openmrs.module.webservices.rest.web.resource.api.Searchable#search(java.lang.String,
+	 *      org.openmrs.module.webservices.rest.web.RequestContext)
+	 */
+	@Override
+	public SimpleObject search(String query, RequestContext context) throws ResponseException {
+		List<T> results = DefinitionContext.getDefinitionService(getDefinitionType()).getDefinitions(query, false);
+		SearchResult result = new NeedsPaging<T>(results, context);
+		return result.toSimpleObject();
+	}
+	
+	
 }
