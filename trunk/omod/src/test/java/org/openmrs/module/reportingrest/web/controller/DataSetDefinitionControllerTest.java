@@ -41,7 +41,7 @@ public class DataSetDefinitionControllerTest extends BaseModuleWebContextSensiti
 	
 	@Test
 	public void shouldGetAll() throws Exception {
-		controller.getAll(request, response);
+		controller.search("q", request, response);
 		Assert.assertEquals(200, response.getStatus());
 	}
 	

@@ -13,6 +13,42 @@
 	<description>OpenMRS module project for reportingrest</description>
 
 	<dependencies>
+		
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>reporting</artifactId>
+			<version>0.7.0</version>
+			<type>jar</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>htmlwidgets</artifactId>
+			<version>1.6.0</version>
+			<type>jar</type>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>serialization.xstream</artifactId>
+			<version>0.2.5</version>
+			<type>jar</type>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>webservices.rest-api</artifactId>
+			<version>0.9-SNAPSHOT</version>
+			<type>jar</type>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>webservices.rest-omod</artifactId>
+			<version>0.9-SNAPSHOT</version>
+			<type>jar</type>
+		</dependency>
+	
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
 			<artifactId>reportingrest-api</artifactId>
