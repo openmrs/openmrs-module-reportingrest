@@ -19,6 +19,7 @@
 			<artifactId>reporting</artifactId>
 			<version>0.7.0</version>
 			<type>jar</type>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
@@ -26,6 +27,7 @@
 			<artifactId>htmlwidgets</artifactId>
 			<version>1.6.0</version>
 			<type>jar</type>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -33,6 +35,7 @@
 			<artifactId>serialization.xstream</artifactId>
 			<version>0.2.5</version>
 			<type>jar</type>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -40,6 +43,7 @@
 			<artifactId>webservices.rest-api</artifactId>
 			<version>0.9-SNAPSHOT</version>
 			<type>jar</type>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -47,6 +51,7 @@
 			<artifactId>webservices.rest-omod</artifactId>
 			<version>0.9-SNAPSHOT</version>
 			<type>jar</type>
+			<scope>provided</scope>
 		</dependency>
 	
 		<dependency>
