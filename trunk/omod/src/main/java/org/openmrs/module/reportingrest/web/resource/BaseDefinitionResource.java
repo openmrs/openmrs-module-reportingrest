@@ -118,14 +118,12 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	}
 	
 	/**
-	 * @see org.openmrs.module.webservices.rest.web.resource.api.Searchable#search(java.lang.String,
-	 *      org.openmrs.module.webservices.rest.web.RequestContext)
+	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource#doSearch(java.lang.String, org.openmrs.module.webservices.rest.web.RequestContext)
 	 */
 	@Override
-	public SimpleObject search(String query, RequestContext context) throws ResponseException {
+	protected SearchResult doSearch(String query, RequestContext context) {
 		List<T> results = DefinitionContext.getDefinitionService(getDefinitionType()).getDefinitions(query, false);
-		SearchResult result = new NeedsPaging<T>(results, context);
-		return result.toSimpleObject();
+		return new NeedsPaging<T>(results, context);
 	}
 	
 	
