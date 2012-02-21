@@ -123,6 +123,9 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		return new NeedsPaging<T>(results, context);
 	}
 	
+	/**
+	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource#doGetAll(org.openmrs.module.webservices.rest.web.RequestContext)
+	 */
 	public List<T> doGetAll(RequestContext context) throws ResponseException {
 		return DefinitionContext.getDefinitionService(getDefinitionType()).getAllDefinitions(false);
 	}

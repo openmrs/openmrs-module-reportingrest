@@ -65,6 +65,13 @@ public class DataSetDefinitionControllerTest extends BaseModuleWebContextSensiti
 	}
 	
 	@Test
+	public void shouldGetAll() throws Exception {
+		List<Object> results = controller.getAll(request, response);
+		Assert.assertEquals(1, results.size());
+		System.out.println(new ObjectMapper().writeValueAsString(results));
+	}
+	
+	@Test
 	public void shouldGetDefault() throws Exception {
 		Object dsd = controller.retrieve("12345", request);
 		System.out.println(new ObjectMapper().writeValueAsString(dsd));
