@@ -40,8 +40,9 @@ public class DataSetDefinitionResource extends BaseDefinitionResource<DataSetDef
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
 		// TODO, add link to evaluated dataset url
-		// TODO, property for list of available params (see parent class)
 		
 		return super.getRepresentationDescription(rep); 
 	}
+	
+	
 }

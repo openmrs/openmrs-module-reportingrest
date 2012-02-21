@@ -23,11 +23,11 @@ import org.junit.Test;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinitionService;
+import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
 
 /**
  *
@@ -51,6 +51,8 @@ public class DataSetDefinitionControllerTest extends BaseModuleWebContextSensiti
 		dsd.setName("Everyone");
 		dsd.setDescription("via SQL");
 		dsd.setSqlQuery("select person_id, sex, birthdate from person where voided = 0");
+		dsd.addParameter(new Parameter("param1", "param 1", String.class));
+		dsd.setUuid("12345");
 		Context.getService(DataSetDefinitionService.class).saveDefinition(dsd);
 	}
 	
@@ -60,8 +62,12 @@ public class DataSetDefinitionControllerTest extends BaseModuleWebContextSensiti
 		List results = (List) result.get("results");
 		Assert.assertEquals(1, results.size());
 		System.out.println(new ObjectMapper().writeValueAsString(result));
-		// uri on self link comes back as "NEED-TO-CONFIGURE/ws/rest/v1/dataSetDefinition/a3c427b2-f1c3-4c81-806d-3af8ce0bc8ed"
-		// TODO find out how to point this at a different base url.
+	}
+	
+	@Test
+	public void shouldGetDefault() throws Exception {
+		Object dsd = controller.retrieve("12345", request);
+		System.out.println(new ObjectMapper().writeValueAsString(dsd));
 	}
 	
 }

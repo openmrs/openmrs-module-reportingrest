@@ -39,9 +39,8 @@ public class CohortDefinitionResource extends BaseDefinitionResource<CohortDefin
 	 */
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
-		// TODO, add link to evaluated cohort url
-		// TODO, property for list of available params (see parent class)
-		
-		return super.getRepresentationDescription(rep); 
+		DelegatingResourceDescription desc = super.getRepresentationDescription(rep);
+		// desc.addLink("evaluate", uri); // TODO, how to add link to evaluated cohort url??
+		return desc;
 	}
 }

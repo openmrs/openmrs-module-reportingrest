@@ -9,42 +9,37 @@ import java.util.Map;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.openmrs.annotation.Handler;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
-import org.openmrs.module.reporting.dataset.DataSetMetaData;
+import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Converter;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
 
-@Handler(supports = DataSetMetaData.class, order = 0)
-public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
+@Handler(supports = Parameter.class, order = 0)
+public class ParameterConverter implements Converter<Parameter> {
 
 	@Override
-	public DataSetMetaData getByUniqueId(String string) {
+	public Parameter getByUniqueId(String string) {
 		// not used
 		return null;
 	}
 
 	@Override
-	public Object asRepresentation(DataSetMetaData metadata, Representation rep)
+	public Object asRepresentation(Parameter param, Representation rep)
 			throws ConversionException {
 		// convert into a map
-		// [ { name: "name", label: "Pretty Name", datatype: "java.lang.String"}, { }, ... ]
-		List<Map<String, String>> columns = new ArrayList<Map<String, String>>();
-		for (DataSetColumn column : metadata.getColumns()) {
-			Map<String, String> columnMap = new HashMap<String, String>();
-			columnMap.put("name", column.getName());
-			columnMap.put("label", column.getLabel());
-			columnMap.put("datatype", column.getDataType().getName());
-			columns.add(columnMap);
-		}
+		Map<String, String> paramMap = new HashMap<String, String>();
+		paramMap.put("name", param.getName());
+		paramMap.put("label", param.getLabel());
+		paramMap.put("type", param.getType().getName());
 		
-		return columns;
+		return paramMap;
 	}
 
 	@Override
-	public Object getProperty(DataSetMetaData metadata, String propertyName)
+	public Object getProperty(Parameter param, String propertyName)
 			throws ConversionException {
 		try {
-			return PropertyUtils.getProperty(metadata, propertyName);
+			return PropertyUtils.getProperty(param, propertyName);
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (InvocationTargetException e) {
@@ -58,7 +53,7 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 	}
 
 	@Override
-	public void setProperty(DataSetMetaData instance, String propertyName,
+	public void setProperty(Parameter instance, String propertyName,
 			Object value) throws ConversionException {
 		// not used
 	}

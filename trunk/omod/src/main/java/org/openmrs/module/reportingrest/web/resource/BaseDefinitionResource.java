@@ -17,7 +17,6 @@ import java.util.List;
 
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.Definition;
-import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -95,15 +94,12 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
 		DelegatingResourceDescription description = null;
 		
-		
-		// TODO: Add more properties below, particularly parameters
-		
-		
 		if (rep instanceof DefaultRepresentation) {
 			description = new DelegatingResourceDescription();
 			description.addProperty("uuid");
 			description.addProperty("name");
 			description.addProperty("description");
+			description.addProperty("parameters");
 			description.addSelfLink();
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} 
@@ -112,6 +108,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 			description.addProperty("uuid");
 			description.addProperty("name");
 			description.addProperty("description");
+			description.addProperty("parameters");
 			description.addSelfLink();
 		}
 		return description;
@@ -126,5 +123,28 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		return new NeedsPaging<T>(results, context);
 	}
 	
+	public List<T> doGetAll(RequestContext context) throws ResponseException {
+		return DefinitionContext.getDefinitionService(getDefinitionType()).getAllDefinitions(false);
+	}
+	
+	/**
+	 * @param delegate
+	 * @return the URI for the given delegate object
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public String getUri(Object delegate) {
+		if (delegate == null)
+			return "";
+		
+		Resource res = getClass().getAnnotation(Resource.class);
+		if (res != null) {
+			String url = RestConstants.URI_PREFIX + res.value() + "/" + getUniqueId((T) delegate);
+			url = url.replace("/rest/", "/reporting/"); // hacky :-(
+			return url;
+		}
+		throw new RuntimeException(getClass() + " needs a @Resource or @SubResource annotation");
+		
+	}
 	
 }
