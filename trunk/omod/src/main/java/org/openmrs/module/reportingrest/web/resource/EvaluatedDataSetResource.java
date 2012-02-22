@@ -53,6 +53,10 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 	
 	private static Log log = LogFactory.getLog(EvaluatedDataSetResource.class);
 	
+	public EvaluatedDataSetResource() {
+		remappedProperties.put("metadata", "metaData");
+	}
+	
 	@Override
 	public Object retrieve(String uuid, RequestContext requestContext)
 			throws ResponseException {
@@ -86,6 +90,9 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 		DataSet dataSet = null;
 		try {
 			dataSet = dataSetDefinitionService.evaluate(definition, evalContext);
+			// there seems to be a bug in the underlying reporting module that doesn't set this
+			if (dataSet.getDefinition().getUuid() == null)
+				dataSet.getDefinition().setUuid(definition.getUuid());
 		} catch (EvaluationException e) {
 			log.error("Unable to evaluate definition with uuid: " + uuid);
 		}
@@ -141,9 +148,9 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 		
 		if (rep instanceof DefaultRepresentation) {
 			description = new DelegatingResourceDescription();
-			description.addProperty("uuid"); // get @PropertyGetter method below
-			description.addProperty("dataSetMetaData");
-			description.addProperty("rows");
+			description.addProperty("uuid"); // see @PropertyGetter method below
+			description.addProperty("metadata"); // remapped property
+			description.addProperty("rows"); // see @PropertyGetter method below
 			description.addSelfLink();
 		}
 

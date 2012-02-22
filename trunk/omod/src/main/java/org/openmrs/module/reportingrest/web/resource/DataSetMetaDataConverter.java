@@ -10,6 +10,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.openmrs.annotation.Handler;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
 import org.openmrs.module.reporting.dataset.DataSetMetaData;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Converter;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
@@ -26,8 +27,11 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 	@Override
 	public Object asRepresentation(DataSetMetaData metadata, Representation rep)
 			throws ConversionException {
-		// convert into a map
-		// [ { name: "name", label: "Pretty Name", datatype: "java.lang.String"}, { }, ... ]
+		// ouput should be:
+		// { columns: [
+		//			{ name: "internalName", label: "Pretty Name", datatype: "java.lang.String" },
+		//			...
+		// 		] }
 		List<Map<String, String>> columns = new ArrayList<Map<String, String>>();
 		for (DataSetColumn column : metadata.getColumns()) {
 			Map<String, String> columnMap = new HashMap<String, String>();
@@ -36,8 +40,8 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 			columnMap.put("datatype", column.getDataType().getName());
 			columns.add(columnMap);
 		}
-		
-		return columns;
+
+		return new SimpleObject().add("columns", columns);
 	}
 
 	@Override
