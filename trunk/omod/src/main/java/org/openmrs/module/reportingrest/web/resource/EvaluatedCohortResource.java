@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Patient;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionService;
@@ -91,7 +93,17 @@ public class EvaluatedCohortResource extends BaseDelegatingResource<EvaluatedCoh
 		
 		// actually do the evaluation
 		try {
-			return cohortDefinitionService.evaluate(definition, evalContext);
+			EvaluatedCohort evaluated = cohortDefinitionService.evaluate(definition, evalContext);
+
+			// there seems to be a bug in the reporting module that doesn't set these
+			if (evaluated.getDefinition().getName() == null)
+				evaluated.getDefinition().setName(definition.getName());
+			if (evaluated.getDefinition().getDescription() == null)
+				evaluated.getDefinition().setDescription(definition.getDescription());
+			if (evaluated.getDefinition().getUuid() == null)
+				evaluated.getDefinition().setUuid(definition.getUuid());
+
+			return evaluated;
 		} catch (EvaluationException e) {
 			log.error("Unable to evaluate definition with uuid: " + uuid);
 			return null;
@@ -106,7 +118,7 @@ public class EvaluatedCohortResource extends BaseDelegatingResource<EvaluatedCoh
 	@Override
 	public String getUri(Object instance) {
 		// TODO, use annotation?
-		return RestConstants.URI_PREFIX + "/reporting/cohort";
+		return RestConstants.URI_PREFIX.replace("/rest", "/reporting") + "cohort/" + getUuidOfCohortDefinition((EvaluatedCohort) instance);
 	}
 
 	@Override
@@ -146,9 +158,9 @@ public class EvaluatedCohortResource extends BaseDelegatingResource<EvaluatedCoh
 		
 		if (rep instanceof DefaultRepresentation) {
 			description = new DelegatingResourceDescription();
-			description.addProperty("uuid"); // get @PropertyGetter method below
+			description.addProperty("uuid"); // @PropertyGetter method below
 			description.addProperty("definition");
-			description.addProperty("memberIds"); // TODO: convert to list of uuids?
+			description.addProperty("members", Representation.REF); // @PropertyGetter method below
 			description.addSelfLink();
 		}
 
@@ -162,6 +174,18 @@ public class EvaluatedCohortResource extends BaseDelegatingResource<EvaluatedCoh
 	@PropertyGetter("uuid")
 	public String getUuidOfCohortDefinition(EvaluatedCohort evaluatedCohort) {
 		return evaluatedCohort.getDefinition().getUuid();
+	}
+	
+	/**
+	 * In core and the reporting module, a cohort is a list of members ids, but for web services
+	 * we should expose these as REFs to the relevant patients.
+	 * There's a performance penalty for this, so we should consider changing this to include a
+	 * URI that lets you look up the patient, but is based on patientId, so we don't have to hit
+	 * the database.
+	 */
+	@PropertyGetter("members")
+	public List<Patient> getMembers(EvaluatedCohort evaluatedCohort) {
+		return Context.getPatientSetService().getPatients(evaluatedCohort.getMemberIds());
 	}
 	
 }

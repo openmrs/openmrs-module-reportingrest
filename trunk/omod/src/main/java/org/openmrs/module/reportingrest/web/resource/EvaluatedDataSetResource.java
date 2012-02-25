@@ -93,6 +93,10 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 			// there seems to be a bug in the underlying reporting module that doesn't set this
 			if (dataSet.getDefinition().getUuid() == null)
 				dataSet.getDefinition().setUuid(definition.getUuid());
+			if (dataSet.getDefinition().getName() == null)
+				dataSet.getDefinition().setName(definition.getName());
+			if (dataSet.getDefinition().getDescription() == null)
+				dataSet.getDefinition().setDescription(definition.getDescription());
 		} catch (EvaluationException e) {
 			log.error("Unable to evaluate definition with uuid: " + uuid);
 		}
@@ -108,8 +112,7 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 	@Override
 	public String getUri(Object instance) {
 		// TODO, use annotation?
-		
-		return RestConstants.URI_PREFIX + "/reporting/dataset";
+		return RestConstants.URI_PREFIX.replace("/rest", "/reporting") + "dataset/" + getUuidOfDataSetDefinition((DataSet) instance);
 	}
 
 	@Override
