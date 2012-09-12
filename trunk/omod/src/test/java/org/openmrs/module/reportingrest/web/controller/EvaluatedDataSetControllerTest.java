@@ -56,7 +56,8 @@ public class EvaluatedDataSetControllerTest extends BaseModuleWebContextSensitiv
 		Context.getService(DataSetDefinitionService.class).saveDefinition(dsd);
 	}
 	
-	@Test
+	@SuppressWarnings("rawtypes")
+    @Test
 	public void shouldEvaluateADSDWithNoParams() throws Exception {
 		Object object = controller.retrieve("12345", request);
 		System.out.println(new ObjectMapper().writeValueAsString(object));

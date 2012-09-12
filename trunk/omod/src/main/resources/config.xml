@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module configVersion="1.0">
+<module configVersion="1.2">
 	
 	<!-- Base Module Properties -->
 	<id>@MODULE_ID@</id>
@@ -9,12 +9,12 @@
 	<author>Partners In Health</author>
 	<description>RESTful Web Services for the reporting module</description>
 	<activator>@MODULE_PACKAGE@.ModuleActivator</activator>
-	<require_version>1.8.2</require_version>
+	<require_version>${openmrsVersion}</require_version>
 	
 	<require_modules>
-	   	<require_module>org.openmrs.module.serialization.xstream</require_module>
-	   	<require_module>org.openmrs.module.reporting</require_module>
-	   	<require_module>org.openmrs.module.webservices.rest</require_module>
+	   	<require_module version="${serializationxstreamVersion}">org.openmrs.module.serialization.xstream</require_module>
+	   	<require_module version="${reportingVersion}">org.openmrs.module.reporting</require_module>
+	   	<require_module version="${webservicesRestVersion}">org.openmrs.module.webservices.rest</require_module>
 	</require_modules>
 
 	<messages>

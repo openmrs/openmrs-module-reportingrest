@@ -58,7 +58,8 @@ public class EvaluatedCohortControllerTest extends BaseModuleWebContextSensitive
 		Context.getService(CohortDefinitionService.class).saveDefinition(cd);
 	}
 	
-	@Test
+	@SuppressWarnings("rawtypes")
+    @Test
 	public void shouldRetrieveDefaultRep() throws Exception {
 		Object evaluated = controller.retrieve(UUID, request);
 		String json = toJson(evaluated);
@@ -79,6 +80,7 @@ public class EvaluatedCohortControllerTest extends BaseModuleWebContextSensitive
 		}
 	}
 
+    @SuppressWarnings("unchecked")
     private boolean hasLink(Object obj, String rel, String uriEndsWith) {
 	    List<Hyperlink> links = (List<Hyperlink>) path(obj, "links");
 	    for (Hyperlink link : links) {

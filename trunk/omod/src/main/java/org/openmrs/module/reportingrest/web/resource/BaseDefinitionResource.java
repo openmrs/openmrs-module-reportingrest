@@ -23,7 +23,7 @@ import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
-import org.openmrs.module.webservices.rest.web.resource.api.SearchResult;
+import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.api.Searchable;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
@@ -45,7 +45,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	 * @see BaseDelegatingResource#newDelegate()
 	 */
 	@Override
-	protected T newDelegate() {
+    public T newDelegate() {
 		try {
 			return getDefinitionType().newInstance();
 		}
@@ -118,7 +118,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource#doSearch(java.lang.String, org.openmrs.module.webservices.rest.web.RequestContext)
 	 */
 	@Override
-	protected SearchResult doSearch(String query, RequestContext context) {
+	protected PageableResult doSearch(String query, RequestContext context) {
 		List<T> results = DefinitionContext.getDefinitionService(getDefinitionType()).getDefinitions(query, false);
 		return new NeedsPaging<T>(results, context);
 	}
@@ -126,8 +126,8 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource#doGetAll(org.openmrs.module.webservices.rest.web.RequestContext)
 	 */
-	public List<T> doGetAll(RequestContext context) throws ResponseException {
-		return DefinitionContext.getDefinitionService(getDefinitionType()).getAllDefinitions(false);
+	public PageableResult doGetAll(RequestContext context) throws ResponseException {
+		return new NeedsPaging<T>(DefinitionContext.getDefinitionService(getDefinitionType()).getAllDefinitions(false), context);
 	}
 	
 	/**

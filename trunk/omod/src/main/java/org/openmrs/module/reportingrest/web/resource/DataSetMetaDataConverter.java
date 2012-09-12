@@ -25,7 +25,7 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 	}
 
 	@Override
-	public Object asRepresentation(DataSetMetaData metadata, Representation rep)
+	public SimpleObject asRepresentation(DataSetMetaData metadata, Representation rep)
 			throws ConversionException {
 		// ouput should be:
 		// { columns: [
@@ -61,12 +61,21 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 		return null;
 	}
 
-	@Override
-	public void setProperty(DataSetMetaData instance, String propertyName,
-			Object value) throws ConversionException {
-		// not used
-	}
-	
-	
+	/**
+     * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#newInstance(java.lang.String)
+     */
+    @Override
+    public DataSetMetaData newInstance(String arg0) {
+	    // not used
+    	return null;
+    }
+
+	/**
+     * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#setProperty(java.lang.Object, java.lang.String, java.lang.Object)
+     */
+    @Override
+    public void setProperty(Object instance, String propertyName, Object value) throws ConversionException {
+    	// not used
+    }
 
 }

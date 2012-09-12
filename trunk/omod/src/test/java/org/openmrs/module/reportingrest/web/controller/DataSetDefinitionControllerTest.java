@@ -56,7 +56,8 @@ public class DataSetDefinitionControllerTest extends BaseModuleWebContextSensiti
 		Context.getService(DataSetDefinitionService.class).saveDefinition(dsd);
 	}
 	
-	@Test
+	@SuppressWarnings("rawtypes")
+    @Test
 	public void shouldSearch() throws Exception {
 		SimpleObject result = controller.search("every", request, response);
 		List results = (List) result.get("results");
@@ -64,9 +65,11 @@ public class DataSetDefinitionControllerTest extends BaseModuleWebContextSensiti
 		System.out.println(new ObjectMapper().writeValueAsString(result));
 	}
 	
-	@Test
+	@SuppressWarnings("rawtypes")
+    @Test
 	public void shouldGetAll() throws Exception {
-		List<Object> results = controller.getAll(request, response);
+		SimpleObject result = controller.getAll(request, response);
+		List results = (List) result.get("results");
 		Assert.assertEquals(1, results.size());
 		System.out.println(new ObjectMapper().writeValueAsString(results));
 	}

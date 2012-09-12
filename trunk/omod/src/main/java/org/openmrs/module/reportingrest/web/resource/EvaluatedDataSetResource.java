@@ -122,13 +122,13 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 	}
 
 	@Override
-	protected DataSet newDelegate() {
+    public DataSet newDelegate() {
 		// not used (?)
 		return null;
 	}
 
 	@Override
-	protected DataSet save(DataSet delegate) {
+    public DataSet save(DataSet delegate) {
 		// not used
 		return null;
 	}

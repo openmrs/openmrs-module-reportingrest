@@ -33,7 +33,7 @@ public class RenderingModeConverter implements Converter<RenderingMode> {
 	 * @see Converter#asRepresentation(Object, Representation)
 	 */
 	@Override
-	public Object asRepresentation(RenderingMode mode, Representation rep) throws ConversionException {
+	public SimpleObject asRepresentation(RenderingMode mode, Representation rep) throws ConversionException {
 		SimpleObject so = new SimpleObject();
 		so.add("rendererType", mode.getRenderer().getClass().getName());
 		so.add("argument", mode.getArgument());
@@ -77,15 +77,20 @@ public class RenderingModeConverter implements Converter<RenderingMode> {
 	}
 
 	/**
-	 * @see Converter#setProperty(Object, String, Object)
+	 * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#setProperty(java.lang.Object, java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public void setProperty(RenderingMode renderer, String propertyName, Object value) throws ConversionException {
-		try {
-			PropertyUtils.setProperty(renderer, propertyName, value);
-		}
-		catch (Exception e) {
-			throw new ConversionException("Unable to set property " + propertyName + " on " + renderer + " to " + value, e);
-		}
+	public void setProperty(Object renderer, String propertyName, Object value) throws ConversionException {
+		//not used
 	}
+
+	/**
+     * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#newInstance(java.lang.String)
+     */
+    @Override
+    public RenderingMode newInstance(String arg0) {
+	    // not used
+	    return null;
+    }
+    
 }

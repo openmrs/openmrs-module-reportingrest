@@ -128,13 +128,13 @@ public class EvaluatedCohortResource extends BaseDelegatingResource<EvaluatedCoh
 	}
 
 	@Override
-	protected EvaluatedCohort newDelegate() {
+    public EvaluatedCohort newDelegate() {
 		// not used (?)
 		return new EvaluatedCohort();
 	}
 
 	@Override
-	protected EvaluatedCohort save(EvaluatedCohort delegate) {
+    public EvaluatedCohort save(EvaluatedCohort delegate) {
 		// not used
 		return null;
 	}

@@ -10,6 +10,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.openmrs.annotation.Handler;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Converter;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
@@ -24,10 +25,10 @@ public class ParameterConverter implements Converter<Parameter> {
 	}
 
 	@Override
-	public Object asRepresentation(Parameter param, Representation rep)
+	public SimpleObject asRepresentation(Parameter param, Representation rep)
 			throws ConversionException {
 		// convert into a map
-		Map<String, String> paramMap = new HashMap<String, String>();
+		SimpleObject paramMap = new SimpleObject();
 		paramMap.put("name", param.getName());
 		paramMap.put("label", param.getLabel());
 		paramMap.put("type", param.getType().getName());
@@ -52,12 +53,21 @@ public class ParameterConverter implements Converter<Parameter> {
 		return null;
 	}
 
+	/**
+	 * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#setProperty(java.lang.Object, java.lang.String, java.lang.Object)
+	 */
 	@Override
-	public void setProperty(Parameter instance, String propertyName,
-			Object value) throws ConversionException {
+	public void setProperty(Object instance, String propertyName, Object value) throws ConversionException {
 		// not used
 	}
-	
-	
+
+	/**
+     * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#newInstance(java.lang.String)
+     */
+    @Override
+    public Parameter newInstance(String arg0) {
+	    // not used
+	    return null;
+    }
 
 }

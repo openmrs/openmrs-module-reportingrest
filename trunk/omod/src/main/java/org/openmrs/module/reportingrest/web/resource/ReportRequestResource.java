@@ -36,10 +36,10 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 public class ReportRequestResource extends DelegatingCrudResource<ReportRequest> {
 	
 	/**
-	 * @see BaseDelegatingResource#newDelegate()
+	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#newDelegate()
 	 */
 	@Override
-	protected ReportRequest newDelegate() {
+    public ReportRequest newDelegate() {
 		return new ReportRequest();
 	}
 	
@@ -52,10 +52,10 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	}
 	
 	/**
-	 * @see BaseDelegatingResource#save(Object)
+	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
 	@Override
-	protected ReportRequest save(ReportRequest reportRequest) {
+    public ReportRequest save(ReportRequest reportRequest) {
 		return getService().saveReportRequest(reportRequest);
 	}
 

@@ -6,7 +6,6 @@
 		<artifactId>reportingrest</artifactId>
 		<version>1.0-SNAPSHOT</version>
 	</parent>
-	<groupId>org.openmrs.module</groupId>
 	<artifactId>reportingrest-omod</artifactId>
 	<packaging>jar</packaging>
 	<name>reportingrest OMOD</name>
@@ -16,24 +15,24 @@
 		
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
-			<artifactId>reporting</artifactId>
-			<version>0.7.0</version>
+			<artifactId>reporting-api</artifactId>
+			<version>${reportingVersion}</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
-			<artifactId>htmlwidgets</artifactId>
-			<version>1.6.0</version>
+			<artifactId>htmlwidgets-api</artifactId>
+			<version>${htmlwidgetsVersion}</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
-			<artifactId>serialization.xstream</artifactId>
-			<version>0.2.5</version>
+			<artifactId>serialization.xstream-api</artifactId>
+			<version>${serializationxstreamVersion}</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
@@ -41,7 +40,7 @@
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
 			<artifactId>webservices.rest-api</artifactId>
-			<version>0.9-SNAPSHOT</version>
+			<version>${webservicesRestVersion}</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
@@ -49,7 +48,7 @@
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
 			<artifactId>webservices.rest-omod</artifactId>
-			<version>0.9-SNAPSHOT</version>
+			<version>${webservicesRestVersion}</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
@@ -135,6 +134,39 @@
 					<artifactId>maven-resources-plugin</artifactId>
 					<configuration>
 						<includeEmptyDirs>true</includeEmptyDirs>
+					</configuration>
+				</plugin>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.openmrs.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-openmrs-plugin
+										</artifactId>
+										<versionRange>
+											[1.0.1,)
+										</versionRange>
+										<goals>
+											<goal>
+												initialize-module
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
 			</plugins>
