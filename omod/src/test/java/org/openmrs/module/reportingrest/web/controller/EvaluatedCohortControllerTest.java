@@ -76,7 +76,7 @@ public class EvaluatedCohortControllerTest extends BaseModuleWebContextSensitive
 
 		Assert.assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
 		for (String expected : expectedUuids) {
-			Assert.assertTrue(json.contains("/person/" + expected));
+			Assert.assertTrue(json.contains("/patient/" + expected));
 		}
 	}
 

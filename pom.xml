@@ -77,7 +77,7 @@
 
 	<properties>
 		<openMRSVersion>1.8.3</openMRSVersion>
-		<webservicesRestVersion>1.0</webservicesRestVersion>
+		<webservicesRestVersion>1.1</webservicesRestVersion>
 		<reportingVersion>0.7.2.1</reportingVersion>
 		<htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>
 		<serializationxstreamVersion>0.2.7</serializationxstreamVersion>
