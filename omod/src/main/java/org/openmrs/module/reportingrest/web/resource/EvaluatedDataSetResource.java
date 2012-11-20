@@ -13,15 +13,6 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
@@ -33,60 +24,55 @@ import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinition
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
-import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.webservices.rest.web.RequestContext;
-import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Resource;
-import org.openmrs.module.webservices.rest.web.resource.api.Retrievable;
-import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 /**
  * {@link Resource} for evaluating {@link DataSetDefinition}s
  */
-public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> implements Retrievable {
+public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 	
 	private static Log log = LogFactory.getLog(EvaluatedDataSetResource.class);
 	
 	public EvaluatedDataSetResource() {
-		remappedProperties.put("metadata", "metaData");
-	}
+        resourceName = "dataset";
+        remappedProperties.put("metadata", "metaData");
+    }
 	
 	@Override
 	public Object retrieve(String uuid, RequestContext requestContext)
 			throws ResponseException {
+
 		DataSetDefinitionService dataSetDefinitionService = DefinitionContext.getDataSetDefinitionService();
-		
-		// evaluate the DataSet
 		
 		// the passed in uuid is the DataSetDefinition uuid
 		DataSetDefinition definition = dataSetDefinitionService.getDefinitionByUuid(uuid);
-		
-		EvaluationContext evalContext = new EvaluationContext();
-		HttpServletRequest httpRequest = requestContext.getRequest();
-		
-		// if there is a "cohort" parameter, use that to look for a CohortDefinition to run against, otherwise all patients
-		String cohortUuid = httpRequest.getParameter("cohort");
-		if (StringUtils.hasLength(cohortUuid)) {
-			EvaluatedCohort cohort = EvaluatedCohortResource.getEvaluatedCohort(cohortUuid, requestContext, "cohort.");
-			evalContext.setBaseCohort(cohort);
-		}
-		
-		// get the params off the requestContext and put them on the evalContext
-		for (Parameter param : definition.getParameters()) {
-			String httpParamValue = httpRequest.getParameter(param.getName());
-			
-			// TODO error check if value not found?
-			
-			evalContext.addParameterValue(param.getName(), httpParamValue);
-		}
-		
-		// actually do the evaluation
+
+        EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext);
+
+        HttpServletRequest httpRequest = requestContext.getRequest();
+
+        // if there is a "cohort" parameter, use that to look for a CohortDefinition to run against, otherwise all patients
+        String cohortUuid = httpRequest.getParameter("cohort");
+        if (StringUtils.hasLength(cohortUuid)) {
+            EvaluatedCohort cohort = new EvaluatedCohortResource().getEvaluatedCohort(cohortUuid, requestContext, "cohort.");
+            evalContext.setBaseCohort(cohort);
+        }
+
+        // actually do the evaluation
 		DataSet dataSet = null;
 		try {
 			dataSet = dataSetDefinitionService.evaluate(definition, evalContext);
@@ -104,48 +90,7 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 		return convertDelegateToRepresentation(dataSet, getRepresentationDescription(Representation.DEFAULT));
 	}
 
-	@Override
-	public List<Representation> getAvailableRepresentations() {
-		return Arrays.asList(Representation.DEFAULT);
-	}
-
-	@Override
-	public String getUri(Object instance) {
-		// TODO, use annotation?
-		return RestConstants.URI_PREFIX.replace("/rest", "/reporting") + "dataset/" + getUuidOfDataSetDefinition((DataSet) instance);
-	}
-
-	@Override
-	public DataSet getByUniqueId(String uniqueId) {
-		// not used
-		return null;
-	}
-
-	@Override
-    public DataSet newDelegate() {
-		// not used (?)
-		return null;
-	}
-
-	@Override
-    public DataSet save(DataSet delegate) {
-		// not used
-		return null;
-	}
-
-	@Override
-	protected void delete(DataSet delegate, String reason,
-			RequestContext context) throws ResponseException {
-		// not used
-	}
-
-	@Override
-	public void purge(DataSet delegate, RequestContext context)
-			throws ResponseException {
-		// not used
-	}
-
-	@Override
+    @Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
 		DelegatingResourceDescription description = null;
 		
@@ -159,16 +104,7 @@ public class EvaluatedDataSetResource extends BaseDelegatingResource<DataSet> im
 
 		return description;
 	}
-	
-	/**
-	 * @param dataSet the delegate
-	 * @return the uuid of the DataSet definintion that is defined on this object
-	 */
-	@PropertyGetter("uuid")
-	public String getUuidOfDataSetDefinition(DataSet dataSet) {
-		return dataSet.getDefinition().getUuid();
-	}
-	
+
 	/**
 	 * returns [ { col1 : val1, col2, val2 }, {col1a, val1a, col2a, val2a } ]
 	 * 
