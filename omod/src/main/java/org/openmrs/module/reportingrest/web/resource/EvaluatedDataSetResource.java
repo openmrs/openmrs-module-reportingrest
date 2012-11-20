@@ -24,6 +24,7 @@ import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinition
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
+import org.openmrs.module.reporting.indicator.IndicatorResult;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
@@ -121,7 +122,18 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 			DataSetRow row = iterator.next();
 			Map<String, Object> rowMap = new HashMap<String, Object>();
 			for (Map.Entry<DataSetColumn, Object> rowEntry : row.getColumnValues().entrySet()) {
-				rowMap.put(rowEntry.getKey().getName(), rowEntry.getValue());
+                Object value = rowEntry.getValue();
+
+                // If the value we return has any pointers to hibernate proxies, conversion to JSON will fail when we
+                // try to return it to the client. If we pass through an indicator result with an EvaluationContext,
+                // its cache will likely contain hibernate proxies an break things. So we just return the numeric value,
+                // and not the pointers to how we evaluated things. (Plus I don't think we really should be sending mor
+                // than the value back anyway.)
+                if (value instanceof IndicatorResult) {
+                    value = ((IndicatorResult) value).getValue();
+                }
+
+                rowMap.put(rowEntry.getKey().getName(), value);
 			}
 			rows.add(rowMap);
 		}
