@@ -33,78 +33,78 @@ import org.springframework.mock.web.MockHttpServletResponse;
  *
  */
 public class EvaluatedCohortControllerTest extends BaseModuleWebContextSensitiveTest {
-	
-    String UUID = "abc123";
-	EvaluatedCohortController controller;
-	MockHttpServletRequest request;
-	MockHttpServletResponse response;
-	
-	@Before
-	public void before() {
-		controller = new EvaluatedCohortController();
-		request = new MockHttpServletRequest();
-		response = new MockHttpServletResponse();
-	}
-	
-	@Before
-	public void createData() {
-		GenderCohortDefinition cd = new GenderCohortDefinition();
-		cd.setName("Males");
-		cd.setDescription("male patients");
-		cd.setMaleIncluded(true);
-		cd.setFemaleIncluded(false);
-		cd.setUnknownGenderIncluded(false);
-		cd.setUuid(UUID);
-		Context.getService(CohortDefinitionService.class).saveDefinition(cd);
-	}
-	
-	@SuppressWarnings("rawtypes")
-    @Test
-	public void shouldRetrieveDefaultRep() throws Exception {
-		Object evaluated = controller.retrieve(UUID, request);
-		String json = toJson(evaluated);
-		System.out.println("\n" + json + "\n");
-
-		Assert.assertEquals("Males", path(evaluated, "definition.name"));
-		Assert.assertEquals("male patients", path(evaluated, "definition.description"));
-		Assert.assertEquals(UUID, path(evaluated, "definition.uuid"));
-		
-		Assert.assertTrue(hasLink(evaluated, "self", "/cohort/" + UUID));
-		
-		// should include patients 2 and 6 from standard test dataset. their uuids are:
-		String[] expectedUuids = new String[] { "da7f524f-27ce-4bb2-86d6-6d1d05312bd5", "a7e04421-525f-442f-8138-05b619d16def" };
-
-		Assert.assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
-		for (String expected : expectedUuids) {
-			Assert.assertTrue(json.contains("/patient/" + expected));
-		}
-	}
-
-    @SuppressWarnings("unchecked")
-    private boolean hasLink(Object obj, String rel, String uriEndsWith) {
-	    List<Hyperlink> links = (List<Hyperlink>) path(obj, "links");
-	    for (Hyperlink link : links) {
-	    	if (link.getRel().equals(rel) && link.getUri().endsWith(uriEndsWith))
-	    		return true;
-	    }
-	    return false;
-    }
-
-	private String toJson(Object obj) throws Exception {
-	    return new ObjectMapper().writeValueAsString(obj);
-    }
-
-    private Object path(Object object, String dotSeparated) {
-		String[] components = dotSeparated.split("\\.");
-		for (String s : components) {
-			try {
-	            object = PropertyUtils.getProperty(object, s);
-            }
-            catch (Exception ex) {
-	            return null;
-            }
-		}
-		return object;
-    }
-	
+//
+//    String UUID = "abc123";
+//	EvaluatedCohortController controller;
+//	MockHttpServletRequest request;
+//	MockHttpServletResponse response;
+//
+//	@Before
+//	public void before() {
+//		controller = new EvaluatedCohortController();
+//		request = new MockHttpServletRequest();
+//		response = new MockHttpServletResponse();
+//	}
+//
+//	@Before
+//	public void createData() {
+//		GenderCohortDefinition cd = new GenderCohortDefinition();
+//		cd.setName("Males");
+//		cd.setDescription("male patients");
+//		cd.setMaleIncluded(true);
+//		cd.setFemaleIncluded(false);
+//		cd.setUnknownGenderIncluded(false);
+//		cd.setUuid(UUID);
+//		Context.getService(CohortDefinitionService.class).saveDefinition(cd);
+//	}
+//
+//	@SuppressWarnings("rawtypes")
+//    @Test
+//	public void shouldRetrieveDefaultRep() throws Exception {
+//		Object evaluated = controller.retrieve(UUID, request);
+//		String json = toJson(evaluated);
+//		System.out.println("\n" + json + "\n");
+//
+//		Assert.assertEquals("Males", path(evaluated, "definition.name"));
+//		Assert.assertEquals("male patients", path(evaluated, "definition.description"));
+//		Assert.assertEquals(UUID, path(evaluated, "definition.uuid"));
+//
+//		Assert.assertTrue(hasLink(evaluated, "self", "/cohort/" + UUID));
+//
+//		// should include patients 2 and 6 from standard test dataset. their uuids are:
+//		String[] expectedUuids = new String[] { "da7f524f-27ce-4bb2-86d6-6d1d05312bd5", "a7e04421-525f-442f-8138-05b619d16def" };
+//
+//		Assert.assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
+//		for (String expected : expectedUuids) {
+//			Assert.assertTrue(json.contains("/patient/" + expected));
+//		}
+//	}
+//
+//    @SuppressWarnings("unchecked")
+//    private boolean hasLink(Object obj, String rel, String uriEndsWith) {
+//	    List<Hyperlink> links = (List<Hyperlink>) path(obj, "links");
+//	    for (Hyperlink link : links) {
+//	    	if (link.getRel().equals(rel) && link.getUri().endsWith(uriEndsWith))
+//	    		return true;
+//	    }
+//	    return false;
+//    }
+//
+//	private String toJson(Object obj) throws Exception {
+//	    return new ObjectMapper().writeValueAsString(obj);
+//    }
+//
+//    private Object path(Object object, String dotSeparated) {
+//		String[] components = dotSeparated.split("\\.");
+//		for (String s : components) {
+//			try {
+//	            object = PropertyUtils.getProperty(object, s);
+//            }
+//            catch (Exception ex) {
+//	            return null;
+//            }
+//		}
+//		return object;
+//    }
+//
 }

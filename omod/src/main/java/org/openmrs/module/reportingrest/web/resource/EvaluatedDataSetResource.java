@@ -26,10 +26,11 @@ import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reporting.indicator.IndicatorResult;
 import org.openmrs.module.webservices.rest.web.RequestContext;
+import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
+import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
-import org.openmrs.module.webservices.rest.web.resource.api.Resource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.springframework.util.StringUtils;
@@ -44,18 +45,19 @@ import java.util.Map;
 /**
  * {@link Resource} for evaluating {@link DataSetDefinition}s
  */
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/dataSet", supportedClass = DataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
 public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 	
 	private static Log log = LogFactory.getLog(EvaluatedDataSetResource.class);
 	
 	public EvaluatedDataSetResource() {
-        resourceName = "dataset";
         remappedProperties.put("metadata", "metaData");
     }
 	
 	@Override
 	public Object retrieve(String uuid, RequestContext requestContext)
 			throws ResponseException {
+
 
 		DataSetDefinitionService dataSetDefinitionService = DefinitionContext.getDataSetDefinitionService();
 		
