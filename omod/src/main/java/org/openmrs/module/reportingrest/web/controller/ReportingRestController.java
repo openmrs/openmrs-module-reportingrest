@@ -13,18 +13,24 @@
  */
 package org.openmrs.module.reportingrest.web.controller;
 
-import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
-import org.openmrs.module.reportingrest.web.resource.DataSetDefinitionResource;
-import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseCrudController;
+import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
+import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for {@link DataSetDefinition}s
- *
+ * Controller for {@link CohortDefinition}s
  */
 @Controller
-@RequestMapping(value = "/rest/reporting/datasetdefinition")
-public class DataSetDefinitionController extends BaseCrudController<DataSetDefinitionResource> {
+@RequestMapping("/rest/" + RestConstants.VERSION_1 + "/reportingrest")
+public class ReportingRestController extends MainResourceController {
 
+    /**
+     * @see org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController#getNamespace()
+     */
+    @Override
+    public String getNamespace() {
+        return "v1/reportingrest";
+    }
 }

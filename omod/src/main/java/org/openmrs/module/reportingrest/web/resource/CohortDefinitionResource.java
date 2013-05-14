@@ -15,6 +15,8 @@ package org.openmrs.module.reportingrest.web.resource;
 
 import org.openmrs.annotation.Handler;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
+import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
+import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
@@ -23,8 +25,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 /**
  * {@link Resource} for {@link CohortDefinition}s, supporting standard CRUD operations
  */
-@Resource("cohortDefinition")
-@Handler(supports = CohortDefinition.class, order = 1)
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/cohortDefinition", supportedClass = CohortDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
 public class CohortDefinitionResource extends BaseDefinitionResource<CohortDefinition> {
 	
 	/**
@@ -40,7 +41,6 @@ public class CohortDefinitionResource extends BaseDefinitionResource<CohortDefin
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
 		DelegatingResourceDescription desc = super.getRepresentationDescription(rep);
-		// desc.addLink("evaluate", uri); // TODO, how to add link to evaluated cohort url??
 		return desc;
 	}
 }

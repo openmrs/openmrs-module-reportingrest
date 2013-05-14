@@ -7,7 +7,7 @@
 	</parent>
 	<artifactId>reportingrest-api</artifactId>
 	<packaging>jar</packaging>
-	<name>reportingrest API</name>
+	<name>Reporting REST API</name>
 	<description>API project for reportingrest</description>
 
 	<dependencies>
@@ -21,7 +21,7 @@
 		
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
-			<artifactId>webservices.rest-api</artifactId>
+			<artifactId>webservices.rest-omod-common</artifactId>
 			<version>${webservicesRestVersion}</version>
 			<type>jar</type>
 		</dependency>
