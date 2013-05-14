@@ -5,7 +5,7 @@
 	<artifactId>reportingrest</artifactId>
 	<version>1.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>reportingrest</name>
+	<name>Reporting REST</name>
 	<description>Parent project for reportingrest</description>
 
 	<url>http://openmrs.org</url>
@@ -77,8 +77,8 @@
 
 	<properties>
 		<openMRSVersion>1.8.3</openMRSVersion>
-		<webservicesRestVersion>1.1</webservicesRestVersion>
-		<reportingVersion>0.7.2.1</reportingVersion>
+		<webservicesRestVersion>2.0</webservicesRestVersion>
+		<reportingVersion>0.7.5</reportingVersion>
 		<htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>
 		<serializationxstreamVersion>0.2.7</serializationxstreamVersion>
 	</properties>
