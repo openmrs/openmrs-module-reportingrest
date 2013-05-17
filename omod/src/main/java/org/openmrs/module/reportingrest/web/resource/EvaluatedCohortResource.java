@@ -20,14 +20,16 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionService;
+import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.webservices.rest.web.RequestContext;
+import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
+import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
-import org.openmrs.module.webservices.rest.web.resource.api.Resource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
@@ -37,24 +39,20 @@ import java.util.List;
 /**
  * {@link Resource} for evaluating {@link CohortDefinition}s
  */
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/cohort", supportedClass = EvaluatedCohort.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
 public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> {
 
 	private static Log log = LogFactory.getLog(EvaluatedCohortResource.class);
 
     public EvaluatedCohortResource() {
-        resourceName = "cohort";
     }
 
 	@Override
 	public Object retrieve(String uuid, RequestContext requestContext)
 			throws ResponseException {
-
 		// evaluate the cohort
-
 		// the passed in uuid is the CohortDefinition uuid
-
 		EvaluatedCohort evaldCohort = getEvaluatedCohort(uuid, requestContext, "");
-
 		return convertDelegateToRepresentation(evaldCohort, getRepresentationDescription(Representation.DEFAULT));
 	}
 

@@ -16,6 +16,7 @@ package org.openmrs.module.reportingrest.web.resource;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.report.ReportRequest;
+import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -31,10 +32,9 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 /**
  * {@link Resource} for {@link ReportRequest}s, supporting standard CRUD operations
  */
-@Resource("reportRequest")
-@Handler(supports = ReportRequest.class, order = 1)
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/reportRequest", supportedClass = ReportRequest.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
 public class ReportRequestResource extends DelegatingCrudResource<ReportRequest> {
-	
+
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#newDelegate()
 	 */
@@ -42,7 +42,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
     public ReportRequest newDelegate() {
 		return new ReportRequest();
 	}
-	
+
 	/**
 	 * @see BaseDelegatingResource#getByUniqueId(String)
 	 */
@@ -50,7 +50,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	public ReportRequest getByUniqueId(String uuid) {
 		return getService().getReportRequestByUuid(uuid);
 	}
-	
+
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
@@ -66,7 +66,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	protected void delete(ReportRequest reportRequest, String reason, RequestContext context) throws ResponseException {
 		purge(reportRequest, context);
 	}
-	
+
 	/**
 	 * @see BaseDelegatingResource#purge(Object, RequestContext)
 	 */
@@ -78,7 +78,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	}
 
 	/**
-	 * @see BaseDelegatingResource#getRepresentationDescription(representation.Representation)
+	 * @see BaseDelegatingResource#getRepresentationDescription(Representation)
 	 */
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
@@ -99,7 +99,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 			description.addProperty("description");
 			description.addSelfLink();
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
-		} 
+		}
 		else if (rep instanceof FullRepresentation) {
 			description = new DelegatingResourceDescription();
 			description.addProperty("uuid");

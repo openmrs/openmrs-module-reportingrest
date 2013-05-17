@@ -11,8 +11,10 @@ import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Retrievable;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
+import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+import org.openmrs.module.webservices.rest.web.v1_0.wrapper.openmrs1_8.CohortMember1_8;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -25,18 +27,7 @@ import java.util.Set;
 /**
  * Common functionality for resources that evaluate definitions
  */
-public abstract class EvaluatedResource<T extends Evaluated> extends BaseDelegatingResource<T> implements Retrievable {
-
-    protected String resourceName;
-
-    @Override
-    public String getUri(Object instance) {
-        // TODO, use annotation?
-        if (resourceName == null) {
-            throw new IllegalStateException("Forgot to set resourceName property on resource");
-        }
-        return RestConstants.URI_PREFIX.replace("/rest", "/reporting") + resourceName + "/" + getUuidOfEvaluatedDefinition((T) instance);
-    }
+public abstract class EvaluatedResource<T extends Evaluated> extends DelegatingCrudResource<T> implements Retrievable {
 
     /**
      * @param evaluated the delegate
@@ -44,6 +35,15 @@ public abstract class EvaluatedResource<T extends Evaluated> extends BaseDelegat
      */
     @PropertyGetter("uuid")
     public String getUuidOfEvaluatedDefinition(T evaluated) {
+        return evaluated.getDefinition().getUuid();
+    }
+
+    /**
+     * Overridden here since the unique id is not on Evaluated directly
+     * @see org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource#getUniqueId(java.lang.Object)
+     */
+    @Override
+    public String getUniqueId(T evaluated) {
         return evaluated.getDefinition().getUuid();
     }
 
@@ -72,14 +72,12 @@ public abstract class EvaluatedResource<T extends Evaluated> extends BaseDelegat
     }
 
     @Override
-    protected void delete(T delegate, String reason,
-                          RequestContext context) throws ResponseException {
+    protected void delete(T delegate, String reason, RequestContext context) throws ResponseException {
         // not used
     }
 
     @Override
-    public void purge(T delegate, RequestContext context)
-            throws ResponseException {
+    public void purge(T delegate, RequestContext context) throws ResponseException {
         // not used
     }
 

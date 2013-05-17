@@ -88,7 +88,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	}
 	
 	/**
-	 * @see BaseDelegatingResource#getRepresentationDescription(representation.Representation)
+	 * @see BaseDelegatingResource#getRepresentationDescription(Representation)
 	 */
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
@@ -115,10 +115,11 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 	}
 	
 	/**
-	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource#doSearch(java.lang.String, org.openmrs.module.webservices.rest.web.RequestContext)
+	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource#doSearch(org.openmrs.module.webservices.rest.web.RequestContext)
 	 */
 	@Override
-	protected PageableResult doSearch(String query, RequestContext context) {
+	protected PageableResult doSearch(RequestContext context) {
+        String query = context.getParameter("q");
 		List<T> results = DefinitionContext.getDefinitionService(getDefinitionType()).getDefinitions(query, false);
 		return new NeedsPaging<T>(results, context);
 	}
@@ -142,7 +143,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		
 		Resource res = getClass().getAnnotation(Resource.class);
 		if (res != null) {
-			String url = RestConstants.URI_PREFIX + res.value() + "/" + getUniqueId((T) delegate);
+			String url = RestConstants.URI_PREFIX + res.name() + "/" + getUniqueId((T) delegate);
 			url = url.replace("/rest/", "/reporting/"); // hacky :-(
 			return url;
 		}
