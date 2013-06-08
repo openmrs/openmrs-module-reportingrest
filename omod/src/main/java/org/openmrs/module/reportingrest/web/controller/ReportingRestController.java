@@ -23,14 +23,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Controller for {@link CohortDefinition}s
  */
 @Controller
-@RequestMapping("/rest/" + RestConstants.VERSION_1 + "/reportingrest")
+@RequestMapping("/rest/" + RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE)
 public class ReportingRestController extends MainResourceController {
+
+    public static final String REPORTING_REST_NAMESPACE = "/reportingrest";
 
     /**
      * @see org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController#getNamespace()
      */
     @Override
     public String getNamespace() {
-        return "v1/reportingrest";
+        return RestConstants.VERSION_1 + REPORTING_REST_NAMESPACE;
     }
 }
