@@ -13,6 +13,7 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
@@ -24,6 +25,7 @@ import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
+import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
@@ -39,7 +41,8 @@ import java.util.List;
 /**
  * {@link Resource} for evaluating {@link CohortDefinition}s
  */
-@Resource(name = RestConstants.VERSION_1 + "/reportingrest/cohort", supportedClass = EvaluatedCohort.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
+@Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/cohort",
+        supportedClass = EvaluatedCohort.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
 public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> {
 
 	private static Log log = LogFactory.getLog(EvaluatedCohortResource.class);
@@ -52,8 +55,8 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 			throws ResponseException {
 		// evaluate the cohort
 		// the passed in uuid is the CohortDefinition uuid
-		EvaluatedCohort evaldCohort = getEvaluatedCohort(uuid, requestContext, "");
-		return convertDelegateToRepresentation(evaldCohort, getRepresentationDescription(Representation.DEFAULT));
+		EvaluatedCohort evaluatedCohort = getEvaluatedCohort(uuid, requestContext, StringUtils.EMPTY);
+		return asRepresentation(evaluatedCohort, requestContext.getRepresentation());
 	}
 
 	/**

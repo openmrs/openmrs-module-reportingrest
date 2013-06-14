@@ -90,7 +90,7 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 			log.error("Unable to evaluate definition with uuid: " + uuid);
 		}
 		
-		return convertDelegateToRepresentation(dataSet, getRepresentationDescription(Representation.DEFAULT));
+		return asRepresentation(dataSet, requestContext.getRepresentation());
 	}
 
     @Override
