@@ -18,13 +18,23 @@ import org.openmrs.annotation.Handler;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 
+import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.openmrs.module.reporting.evaluation.parameter.Mapped;
+import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.Definition;
@@ -72,9 +82,12 @@ public class ReportDefinitionResource extends MetadataDelegatingCrudResource<Rep
 	/**
 	 * @see BaseDelegatingResource#getByUniqueId(String)
 	 */
+	ReportDefinition mydef=null;
 	@Override
 	public ReportDefinition getByUniqueId(String uuid) {
-		return DefinitionContext.getDefinitionByUuid(getDefinitionType(), uuid);
+		//return DefinitionContext.getDefinitionByUuid(getDefinitionType(), uuid); I removed thos one and only line
+		mydef=DefinitionContext.getDefinitionByUuid(getDefinitionType(), uuid);
+		return mydef;
 	}
 	
 	/**
@@ -125,6 +138,8 @@ public class ReportDefinitionResource extends MetadataDelegatingCrudResource<Rep
 			description.addProperty("name");
 			description.addProperty("description");
 			description.addProperty("parameters");
+			description.addProperty("baseCohort");
+			description.addProperty("dataSetDefintion");
 			description.addSelfLink();
 		}
 		return description;
@@ -146,6 +161,32 @@ public class ReportDefinitionResource extends MetadataDelegatingCrudResource<Rep
 	public PageableResult doGetAll(RequestContext context) throws ResponseException {
 		return new NeedsPaging<ReportDefinition>(DefinitionContext.getDefinitionService(getDefinitionType()).getAllDefinitions(false), context);
 	}
+
+	////*************************//////////// newly added
+	@PropertyGetter("baseCohort")
+	public String getCohort(ReportDefinition rd) {
+		try{
+			return rd.getBaseCohortDefinition().getParameterizable().getName();
+		}catch(Exception e){
+			return "All Patients";
+		}
+
+	}
+	
+	@PropertyGetter("dataSetDefintion")
+	public Map<String,String> getDataSetDef(ReportDefinition rd) {
+		try{
+		Map<String, Mapped<? extends DataSetDefinition>> testt=rd.getDataSetDefinitions();
+		Map<String,String> myMap=new HashMap<String,String>();
+		for (Entry<String, Mapped<? extends DataSetDefinition>> e : testt.entrySet()){
+			myMap.put(e.getKey(), e.getValue().getParameterizable().getName());
+		}
+		return myMap;
+		}catch(Exception e){
+			return null;
+		}
+	}
+
 	
 	/**
 	 * @param delegate
