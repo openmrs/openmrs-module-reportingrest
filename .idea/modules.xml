@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/omod/src/main/Main.iml" filepath="$PROJECT_DIR$/omod/src/main/Main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/api/src/main/Main1.iml" filepath="$PROJECT_DIR$/api/src/main/Main1.iml" />
+    </modules>
+  </component>
+</project>
+

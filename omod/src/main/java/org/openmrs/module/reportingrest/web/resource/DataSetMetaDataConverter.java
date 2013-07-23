@@ -47,7 +47,7 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 	@Override
 	public Object getProperty(DataSetMetaData metadata, String propertyName)
 			throws ConversionException {
-		try {
+	/*	try {
 			return PropertyUtils.getProperty(metadata, propertyName);
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
@@ -55,7 +55,7 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
-		}
+		}*/
 		
 		// fail
 		return null;
