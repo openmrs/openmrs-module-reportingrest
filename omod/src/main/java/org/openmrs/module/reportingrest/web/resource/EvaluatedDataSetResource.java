@@ -30,6 +30,8 @@ import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
+import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
+import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
@@ -45,7 +47,7 @@ import java.util.Map;
 /**
  * {@link Resource} for evaluating {@link DataSetDefinition}s
  */
-@Resource(name = RestConstants.VERSION_1 + "/reportingrest/dataSet", supportedClass = DataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/dataset", supportedClass = DataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
 public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 	
 	private static Log log = LogFactory.getLog(EvaluatedDataSetResource.class);
@@ -103,8 +105,18 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 			description.addProperty("metadata"); // remapped property
 			description.addProperty("rows"); // see @PropertyGetter method below
 			description.addSelfLink();
-		}
-
+		}else if (rep instanceof FullRepresentation) {
+            description = new DelegatingResourceDescription();
+            description.addProperty("uuid");
+            description.addProperty("metadata"); // remapped property
+            description.addProperty("rows");
+            description.addSelfLink();
+        }else if (rep instanceof RefRepresentation) {
+            description = new DelegatingResourceDescription();
+            description.addProperty("uuid");
+            description.addProperty("rows");
+            description.addSelfLink();
+        }
 		return description;
 	}
 
