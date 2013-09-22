@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * {@link Resource} for {@link CohortDefinition}s, supporting standard CRUD operations
  */
-@Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/cohortDefinition",
+@Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/cohortdefinition",
         supportedClass = CohortDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
 public class CohortDefinitionResource extends MetadataDelegatingCrudResource<CohortDefinition> implements Searchable {
 
