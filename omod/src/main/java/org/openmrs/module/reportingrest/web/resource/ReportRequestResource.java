@@ -286,8 +286,8 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
     }
 
     @PropertySetter("definitionName")
-    public static void setDef(ReportRequest reportRequest, String a) {
-        ReportDefinition d=DefinitionContext.getDefinitionByUuid(ReportDefinition.class,a);
+    public static void setDef(ReportRequest reportRequest, String uuid) {
+        ReportDefinition d=DefinitionContext.getDefinitionByUuid(ReportDefinition.class,uuid);
         Mapped<ReportDefinition> mapped=new Mapped<ReportDefinition>();
         mapped.setParameterizable(d);
         reportRequest.setReportDefinition(mapped);
@@ -296,39 +296,39 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
     }
 
     @PropertySetter("status")
-    public static void setstatus(ReportRequest reportRequest, String a) {
+    public static void setStatus(ReportRequest reportRequest, String status) {
         reportRequest.setStatus(ReportRequest.Status.REQUESTED);
     }
 
     @PropertySetter("description")
-    public static void setDiscription(ReportRequest reportRequest, String a) {
-        reportRequest.setDescription(a);
+    public static void setDescription(ReportRequest reportRequest, String description) {
+        reportRequest.setDescription(description);
     }
 
     @PropertySetter("schedule")
-    public static void setSchedule(ReportRequest reportRequest, String a) {
-        reportRequest.setSchedule(a);
+    public static void setSchedule(ReportRequest reportRequest, String schedule) {
+        reportRequest.setSchedule(schedule);
     }
 
     @PropertySetter("baseCohortDefinition")
-    public static void setBaseCohort(ReportRequest reportRequest, String a) {
-        CohortDefinition d= DefinitionContext.getDefinitionByUuid(CohortDefinition.class, a);
+    public static void setBaseCohort(ReportRequest reportRequest, String uuid) {
+        CohortDefinition cd= DefinitionContext.getDefinitionByUuid(CohortDefinition.class, uuid);
         Mapped<CohortDefinition> mapped=new Mapped<CohortDefinition>();
-        mapped.setParameterizable(d);
+        mapped.setParameterizable(cd);
         reportRequest.setBaseCohort(mapped);
     }
 
     @PropertySetter("priority")
-    public static void setPriority(ReportRequest reportRequest, String a) {
-        if(a.equalsIgnoreCase("NORMAL")){
+    public static void setPriority(ReportRequest reportRequest, String priority) {
+        if(priority.equalsIgnoreCase("NORMAL")){
             reportRequest.setPriority(Priority.NORMAL);
-        }else if(a.equalsIgnoreCase("HIGH")){
+        }else if(priority.equalsIgnoreCase("HIGH")){
             reportRequest.setPriority(Priority.HIGH);
-        }else if(a.equalsIgnoreCase("HIGHEST")){
+        }else if(priority.equalsIgnoreCase("HIGHEST")){
             reportRequest.setPriority(Priority.HIGHEST);
-        }else if(a.equalsIgnoreCase("LOW")){
+        }else if(priority.equalsIgnoreCase("LOW")){
             reportRequest.setPriority(Priority.LOW);
-        }else if(a.equalsIgnoreCase("LOWEST")){
+        }else if(priority.equalsIgnoreCase("LOWEST")){
             reportRequest.setPriority(Priority.LOWEST);
         }else{
             reportRequest.setPriority(Priority.NORMAL);
@@ -336,37 +336,37 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
     }
 
     @PropertySetter("renderingMode")
-    public static void setRenderer(ReportRequest reportRequest, String a) {
+    public static void setRenderer(ReportRequest reportRequest, String renderingMode) {
         RenderingMode mode=new RenderingMode();
-        if(a.equalsIgnoreCase("default")){
+        if(renderingMode.equalsIgnoreCase("default")){
             DefaultWebRenderer render=new DefaultWebRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
-        }else if(a.equalsIgnoreCase("text")){
+        }else if(renderingMode.equalsIgnoreCase("text")){
             TextTemplateRenderer render=new TextTemplateRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
-        }else if(a.equalsIgnoreCase("excel")){
+        }else if(renderingMode.equalsIgnoreCase("excel")){
             ExcelTemplateRenderer render=new ExcelTemplateRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
-        }else if(a.equalsIgnoreCase("html")){
+        }else if(renderingMode.equalsIgnoreCase("html")){
             SimpleHtmlReportRenderer render=new SimpleHtmlReportRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
-        }else if(a.equalsIgnoreCase("tsv")){
+        }else if(renderingMode.equalsIgnoreCase("tsv")){
             TsvReportRenderer render=new TsvReportRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
-        }else if(a.equalsIgnoreCase("xls")){
+        }else if(renderingMode.equalsIgnoreCase("xls")){
             XlsReportRenderer render=new XlsReportRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
-        }else if(a.equalsIgnoreCase("logic")){
+        }else if(renderingMode.equalsIgnoreCase("logic")){
             LogicReportWebRenderer render=new LogicReportWebRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
-        }else if(a.equalsIgnoreCase("cohort")){
+        }else if(renderingMode.equalsIgnoreCase("cohort")){
             CohortDetailReportRenderer render=new CohortDetailReportRenderer();
             mode.setRenderer(render);
             reportRequest.setRenderingMode(mode);
