@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+<location location_id="3" name="Neverr Never Landdd" description="This is never be found" address1="" address2="" city_village="Peter" state_province="Pan" postal_code="" country="Wendy" latitude="" longitude="" creator="1" date_created="2008-08-15 15:28:54.0" retired="true" retired_by="1" date_retired="2008-08-15 00:00:00.0" retire_reason="test" uuid="167ce20c-4785-4285-9119-d197268f7f4a"/>
+<serialized_object serialized_object_id="79"
+		name="Patients created in 2006"
+		type="org.openmrs.module.reporting.dataset.definition.DataSetDefinition"
+		subtype="org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition"
+		serialization_class="org.openmrs.module.reporting.serializer.ReportingSerializer"
+		creator="1" date_created="2013-01-10 14:45:49" retired="false"
+		uuid="d9c79890-7ea9-41b1-a068-b5b99ca3d593"
+		serialized_data="&lt;org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition id=&quot;1&quot; uuid=&quot;d9c79890-7ea9-41b1-a068-b5b99ca3d593&quot; retired=&quot;false&quot;&gt;
+  &lt;name&gt;Patients created in 2006&lt;/name&gt;
+  &lt;description&gt;&lt;/description&gt;
+  &lt;creator id=&quot;2&quot; uuid=&quot;842f4bae-1692-11df-97a5-7038c432aabf&quot;/&gt;
+  &lt;dateCreated id=&quot;3&quot;&gt;2013-01-22 12:08:27 UTC&lt;/dateCreated&gt;
+  &lt;parameters id=&quot;5&quot;/&gt;
+  &lt;id&gt;79&lt;/id&gt;
+  &lt;sqlQuery&gt;&lt;/sqlQuery&gt;
+&lt;/org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition&gt;" />
+<serialized_object serialized_object_id="80"
+		name="Patients in 2006" type="org.openmrs.module.reporting.report.definition.ReportDefinition"
+		subtype="org.openmrs.module.reporting.report.definition.ReportDefinition"
+		serialization_class="org.openmrs.module.reporting.serializer.ReportingSerializer"
+		creator="1" date_created="2013-01-10 14:45:49" retired="false"
+		uuid="c11f5354-9567-4cc5-b3ef-163e28873926"
+		serialized_data="&lt;org.openmrs.module.reporting.report.definition.ReportDefinition id=&quot;1&quot; uuid=&quot;c11f5354-9567-4cc5-b3ef-163e28873926&quot; retired=&quot;false&quot;&gt;
+  &lt;name&gt;Patients in 2006&lt;/name&gt;
+  &lt;description&gt;&lt;/description&gt;
+  &lt;creator id=&quot;2&quot; uuid=&quot;842f4bae-1692-11df-97a5-7038c432aabf&quot;/&gt;
+  &lt;dateCreated id=&quot;3&quot;&gt;2013-01-22 12:08:51 UTC&lt;/dateCreated&gt;
+  &lt;parameters id=&quot;5&quot;/&gt;
+  &lt;id&gt;80&lt;/id&gt;
+  &lt;dataSetDefinitions class=&quot;linked-hash-map&quot; id=&quot;6&quot;&gt;
+    &lt;entry&gt;
+      &lt;string&gt;patients&lt;/string&gt;
+      &lt;org.openmrs.module.reporting.evaluation.parameter.Mapped id=&quot;7&quot;&gt;
+        &lt;parameterizable class=&quot;org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition&quot; id=&quot;8&quot; uuid=&quot;d9c79890-7ea9-41b1-a068-b5b99ca3d593&quot;/&gt;
+        &lt;parameterMappings id=&quot;9&quot;/&gt;
+      &lt;/org.openmrs.module.reporting.evaluation.parameter.Mapped&gt;
+    &lt;/entry&gt;
+  &lt;/dataSetDefinitions&gt;
+&lt;/org.openmrs.module.reporting.report.definition.ReportDefinition&gt;" />
+<reporting_report_processor id="1" name="Old retired Logging processor" processor_type="org.openmrs.module.reporting.report.processor.LoggingReportProcessor" configuration="Not needed" run_on_success="true" run_on_error="false" creator="1" date_created="2008-08-18 11:50:15.0" retired="true" uuid="c18717dd-4478-4a0e-84fe-ee62c5f06321" processor_mode="DISABLED"/>
+
+<reporting_report_processor id="1" name="Old retired Logging processor" processor_type="org.openmrs.module.reporting.report.processor.LoggingReportProcessor" configuration="Not needed" run_on_success="true" run_on_error="false" creator="1" date_created="2008-08-18 11:50:15.0" retired="true" uuid="c18717dd-4478-4a0e-84fe-ee62c5f0676a" processor_mode="DISABLED"/>
+  <reporting_report_processor id="2" name="Logging processor" processor_type="org.openmrs.module.reporting.report.processor.LoggingReportProcessor" configuration="Still not needed" run_on_success="true" run_on_error="false" creator="1" date_created="2008-08-18 11:50:15.0" retired="false" uuid="c11117dd-4478-4a0e-84fe-ee62c5f0676a" processor_mode="AUTOMATIC"/>
+
+  
+<serialized_object serialized_object_id="1" name="InvalidSqlCohortDefinition" type="org.openmrs.module.reporting.cohort.definition.CohortDefinition" subtype="org.openmrs.module.reporting.cohort.definition.SqlCohortDefinition" serialization_class="org.openmrs.module.reporting.serializer.ReportingSerializer"  creator="1" date_created="2007-05-04 09:59:22.0" retired="false" uuid="6d9003ea-ab6b-s489-af78-82d48c57a110" serialized_data="&lt;org.openmrs.module.reporting.cohort.definition.SqlCohortDefinition id=&quot;1&quot; retired=&quot;false&quot;&gt;&lt;name&gt;InvalidSqlCohortDefinition&lt;/name&gt;&lt;parameters id=&quot;2&quot;/&gt;&lt;queryDefinition class=&quot;org.openmrs.module.reporting.query.definition.SqlQueryDefinition&quot; id=&quot;3&quot; retired=&quot;false&quot;&gt;&lt;parameters id=&quot;4&quot;/&gt;&lt;queryString&gt;SELECT distinct patient_id FROM patient WHERE patient_id = :patientId&lt;/queryString&gt;&lt;/queryDefinition&gt;&lt;/org.openmrs.module.reporting.cohort.definition.SqlCohortDefinition&gt;"/>
+<serialized_object serialized_object_id="5"
+		name="Ppp" type="org.openmrs.module.reporting.cohort.definition.CohortDefinition"
+		subtype="org.openmrs.module.reporting.cohort.definition.SqlCohortDefinition"
+		serialization_class="org.openmrs.module.reporting.serializer.ReportingSerializer"
+		creator="1" date_created="2013-01-10 14:45:49" retired="false"
+		uuid="d11f5354-9567-4cc5-b3ef-163e28873555"
+		serialized_data="&lt;org.openmrs.module.reporting.cohort.definition.SqlCohortDefinition id=&quot;1&quot; retired=&quot;false&quot;&gt;&lt;name&gt;InvalidSqlCohortDefinition&lt;/name&gt;&lt;parameters id=&quot;2&quot;/&gt;&lt;queryDefinition class=&quot;org.openmrs.module.reporting.query.definition.SqlQueryDefinition&quot; id=&quot;3&quot; retired=&quot;false&quot;&gt;&lt;parameters id=&quot;4&quot;/&gt;&lt;queryString&gt;SELECT distinct patient_id FROM patient WHERE patient_id = :patientId&lt;/queryString&gt;&lt;/queryDefinition&gt;&lt;/org.openmrs.module.reporting.cohort.definition.SqlCohortDefinition&gt;" />
+
+</dataset>
