@@ -81,6 +81,7 @@
 		<reportingVersion>0.7.5</reportingVersion>
 		<htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>
 		<serializationxstreamVersion>0.2.7</serializationxstreamVersion>
+        <calculationVersion>1.0</calculationVersion>
 	</properties>
 
 	<build>

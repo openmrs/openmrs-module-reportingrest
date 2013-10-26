@@ -1,0 +1,115 @@
+package org.openmrs.module.reportingrest.web.resource;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.Before;
+import org.junit.Test;
+import org.openmrs.module.reporting.cohort.definition.GenderCohortDefinition;
+import org.openmrs.module.reporting.dataset.DataSet;
+import org.openmrs.module.reporting.dataset.definition.CohortIndicatorDataSetDefinition;
+import org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition;
+import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinitionService;
+import org.openmrs.module.reporting.evaluation.parameter.Mapped;
+import org.openmrs.module.reporting.evaluation.parameter.Parameter;
+import org.openmrs.module.reporting.evaluation.parameter.Parameterizable;
+import org.openmrs.module.reporting.evaluation.parameter.ParameterizableUtil;
+import org.openmrs.module.reporting.indicator.CohortIndicator;
+import org.openmrs.module.webservices.rest.SimpleObject;
+import org.openmrs.module.webservices.rest.web.RequestContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+/**
+ *
+ */
+public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<EvaluatedDataSetResource, DataSet> {
+
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    DataSetDefinitionService dataSetDefinitionService;
+
+    @Before
+    public void setUp() throws Exception {
+        executeDataSet("DataSetDefinitionTest.xml");
+    }
+
+    @Test
+    public void testEvaluatingDsdWithNoParameters() throws Exception {
+        SimpleObject response = (SimpleObject) getResource().retrieve("d9c79890-7ea9-41b1-a068-b5b99ca3d593", buildRequestContext());
+        assertThat((String) path(response, "metadata", "columns", 0, "name"), is("PATIENT_ID"));
+        List rows = (List) response.get("rows");
+        assertThat(rows.size(), is(4));
+        Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
+        assertThat((Integer) firstRow.get("PATIENT_ID"), is(6));
+    }
+
+    @Test
+    public void testEvaluatingDsdWithParameters() throws Exception {
+        String uuid = "uuid-for-params-dsd";
+
+        SqlDataSetDefinition dsd = new SqlDataSetDefinition();
+        dsd.setName("Not everyone");
+        dsd.setDescription("via SQL");
+        dsd.setSqlQuery("select person_id, birthdate from person where voided = 0 and birthdate > :param2");
+        dsd.addParameter(new Parameter("param1", "param 1", String.class));
+        dsd.addParameter(new Parameter("param2", "param 2", Date.class));
+        dsd.setUuid(uuid);
+        dataSetDefinitionService.saveDefinition(dsd);
+
+        RequestContext context = buildRequestContext("param1", "these are words, that we won't use", "param2", "2000-11-01");
+        SimpleObject response = (SimpleObject) getResource().retrieve(uuid, context);
+
+        List rows = (List) response.get("rows");
+        assertThat(rows.size(), is(1));
+        Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
+        assertThat((Integer) firstRow.get("PERSON_ID"), is(6));
+    }
+
+    @Test
+    public void shouldConvertCohortIndicatorDataSet() throws Exception {
+        {
+            GenderCohortDefinition cd = new GenderCohortDefinition();
+            cd.setName("Gender = Male");
+            cd.setMaleIncluded(true);
+
+            CohortIndicator ind = new CohortIndicator("Gender = Male");
+            ind.setCohortDefinition(map(cd, null));
+
+            CohortIndicatorDataSetDefinition dsd = new CohortIndicatorDataSetDefinition();
+            dsd.setName("Cohort Indicator DSD");
+            dsd.setUuid("cohort-indicator-dsd");
+            dsd.addColumn("1", "One", map(ind, null), "");
+
+            dataSetDefinitionService.saveDefinition(dsd);
+        }
+
+        SimpleObject result = (SimpleObject) getResource().retrieve("cohort-indicator-dsd", buildRequestContext());
+        String json = toJson(result);
+        System.out.println(json);
+
+        assertTrue(json.contains("\"uuid\":\"cohort-indicator-dsd\""));
+        assertTrue(json.contains("\"1\":2")); // this is the count of matching patients
+    }
+
+    private <T extends Parameterizable> Mapped<T> map(T parameterizable, String mappings) {
+        if (parameterizable == null) {
+            throw new NullPointerException("Programming error: missing parameterizable");
+        }
+        if (mappings == null) {
+            mappings = ""; // probably not necessary, just to be safe
+        }
+        return new Mapped<T>(parameterizable, ParameterizableUtil.createParameterMappings(mappings));
+    }
+
+}
