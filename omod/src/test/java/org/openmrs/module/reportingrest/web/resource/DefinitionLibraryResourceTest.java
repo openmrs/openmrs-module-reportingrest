@@ -83,10 +83,8 @@ public class DefinitionLibraryResourceTest extends BaseModuleWebContextSensitive
                 try {
                     actualValue = PropertyUtils.getProperty(o, name);
                 } catch (Exception e) {
-                    System.out.println("returning false");
                     return false;
                 }
-                System.out.println("returning " + (actualValue == null ? (expectedValue == null) : actualValue.equals(expectedValue)));
                 return actualValue == null ? (expectedValue == null) : actualValue.equals(expectedValue);
             }
 
