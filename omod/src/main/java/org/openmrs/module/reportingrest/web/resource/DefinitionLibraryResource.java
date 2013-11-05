@@ -28,9 +28,10 @@ import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
-import org.openmrs.module.webservices.rest.web.resource.api.Retrievable;
+import org.openmrs.module.webservices.rest.web.resource.api.CrudResource;
 import org.openmrs.module.webservices.rest.web.resource.api.Searchable;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.util.Arrays;
@@ -41,8 +42,8 @@ import java.util.Map;
 /**
  *
  */
-@Resource(name = RestConstants.VERSION_1 + "/reportingrest/definitionLibrary", supportedClass = Definition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
-public class DefinitionLibraryResource implements Searchable, Retrievable {
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/definitionlibrary", supportedClass = Definition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
+public class DefinitionLibraryResource implements CrudResource, Searchable {
 
     static Map<String, Class<? extends Definition>> types;
     static {
@@ -92,7 +93,27 @@ public class DefinitionLibraryResource implements Searchable, Retrievable {
     @Override
     public String getUri(Object instance) {
         return RestConstants.URI_PREFIX + RestConstants.VERSION_1 +
-                "/reportingrest/definitionLibrary/" + ((Definition) instance).getUuid();
+                "/reportingrest/definitionlibrary/" + ((Definition) instance).getUuid();
+    }
+
+    @Override
+    public Object create(SimpleObject simpleObject, RequestContext requestContext) throws ResponseException {
+        throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public void delete(String s, String s2, RequestContext requestContext) throws ResponseException {
+        throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public void purge(String s, RequestContext requestContext) throws ResponseException {
+        throw new ResourceDoesNotSupportOperationException();
+    }
+
+    @Override
+    public Object update(String s, SimpleObject simpleObject, RequestContext requestContext) throws ResponseException {
+        throw new ResourceDoesNotSupportOperationException();
     }
 
     private AllDefinitionLibraries getLibraries() {
