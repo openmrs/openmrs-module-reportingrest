@@ -47,7 +47,7 @@ public class DefinitionLibraryResourceTest extends BaseModuleWebContextSensitive
     @Before
     public void setUp() throws Exception {
         RestService restService = Context.getService(RestService.class);
-        resource = (DefinitionLibraryResource) restService.getResourceByName(RestConstants.VERSION_1 + "/reportingrest/definitionLibrary");
+        resource = (DefinitionLibraryResource) restService.getResourceByName(RestConstants.VERSION_1 + "/reportingrest/definitionlibrary");
     }
 
     @Test
