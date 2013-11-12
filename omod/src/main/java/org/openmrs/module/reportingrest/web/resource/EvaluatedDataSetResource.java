@@ -25,6 +25,8 @@ import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reporting.indicator.IndicatorResult;
+import org.openmrs.module.reporting.query.IdSet;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
@@ -102,6 +104,7 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 			description.addProperty("uuid"); // see @PropertyGetter method below
 			description.addProperty("metadata"); // remapped property
 			description.addProperty("rows"); // see @PropertyGetter method below
+			description.addProperty("definition");
 			description.addSelfLink();
 		}
 
@@ -133,6 +136,10 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
                 // than the value back anyway.)
                 if (value instanceof IndicatorResult) {
                     value = ((IndicatorResult) value).getValue();
+                }
+                else if (value instanceof IdSet) {
+                    IdSet idSet = (IdSet) value;
+                    value = new SimpleObject().add("size", idSet.getSize()).add("memberIds", idSet.getMemberIds());
                 }
 
                 rowMap.put(rowEntry.getKey().getName(), value);
