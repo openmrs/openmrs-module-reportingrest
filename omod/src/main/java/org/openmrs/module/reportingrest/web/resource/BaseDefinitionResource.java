@@ -13,8 +13,6 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.util.List;
-
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.Definition;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -30,6 +28,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.MetadataDelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.util.List;
 
 /**
  * Base {@link Resource} for {@link Definition}s, supporting standard CRUD operations
@@ -96,7 +96,8 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		
 		if (rep instanceof DefaultRepresentation) {
 			description = new DelegatingResourceDescription();
-			description.addProperty("uuid");
+            description.addProperty("class");
+            description.addProperty("uuid");
 			description.addProperty("name");
 			description.addProperty("description");
 			description.addProperty("parameters");
@@ -105,6 +106,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		} 
 		else if (rep instanceof FullRepresentation) {
 			description = new DelegatingResourceDescription();
+            description.addProperty("class");
 			description.addProperty("uuid");
 			description.addProperty("name");
 			description.addProperty("description");
