@@ -15,6 +15,7 @@ package org.openmrs.module.reportingrest.web.resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Cohort;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.dataset.DataSet;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
@@ -140,6 +141,11 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
                 else if (value instanceof IdSet) {
                     IdSet idSet = (IdSet) value;
                     value = new SimpleObject().add("size", idSet.getSize()).add("memberIds", idSet.getMemberIds());
+                }
+                else if (value instanceof Cohort) {
+                    // EvaluatedCohort implements IdSet, but Cohort doesn't
+                    Cohort cohort = (Cohort) value;
+                    value = new SimpleObject().add("size", cohort.size()).add("memberIds", cohort.getMemberIds());
                 }
 
                 rowMap.put(rowEntry.getKey().getName(), value);
