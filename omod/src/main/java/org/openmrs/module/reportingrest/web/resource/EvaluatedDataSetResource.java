@@ -19,6 +19,7 @@ import org.openmrs.Cohort;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.dataset.DataSet;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
+import org.openmrs.module.reporting.dataset.DataSetMetaData;
 import org.openmrs.module.reporting.dataset.DataSetRow;
 import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinitionService;
@@ -52,11 +53,7 @@ import java.util.Map;
 public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 	
 	private static Log log = LogFactory.getLog(EvaluatedDataSetResource.class);
-	
-	public EvaluatedDataSetResource() {
-        remappedProperties.put("metadata", "metaData");
-    }
-	
+
 	@Override
 	public Object retrieve(String uuid, RequestContext requestContext)
 			throws ResponseException {
@@ -155,5 +152,16 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 		
 		return rows;
 	}
+
+    /**
+     * Maps "metaData" property to "metadata"
+     *
+     * @param instance
+     * @return
+     */
+    @PropertyGetter("metadata")
+    public DataSetMetaData getMetadata(DataSet instance) {
+        return instance.getMetaData();
+    }
 	
 }
