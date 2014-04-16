@@ -24,8 +24,8 @@
 
     <properties>
         <openMRSVersion>1.8.3</openMRSVersion>
-        <webservicesRestVersion>2.3</webservicesRestVersion>
-        <reportingVersion>0.8.1</reportingVersion>
+        <webservicesRestVersion>2.5-SNAPSHOT</webservicesRestVersion>
+        <reportingVersion>0.8.3-SNAPSHOT</reportingVersion>
         <htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>
         <serializationxstreamVersion>0.2.7</serializationxstreamVersion>
         <calculationVersion>1.0</calculationVersion>
@@ -81,8 +81,48 @@
 				<type>pom</type>
 				<scope>test</scope>
 			</dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>1.3</version>
+                <scope>test</scope>
+            </dependency>
 		</dependencies>
 	</dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>reporting-api</artifactId>
+            <version>${reportingVersion}</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>htmlwidgets-api</artifactId>
+            <version>${htmlwidgetsVersion}</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>serialization.xstream-api</artifactId>
+            <version>${serializationxstreamVersion}</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>calculation-api</artifactId>
+            <version>${calculationVersion}</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<pluginManagement>

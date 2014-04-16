@@ -7,42 +7,10 @@
 	</parent>
 	<artifactId>reportingrest-omod</artifactId>
 	<packaging>jar</packaging>
-	<name>reportingrest OMOD</name>
+	<name>Reporting REST OMOD</name>
 	<description>OpenMRS module project for reportingrest</description>
 
 	<dependencies>
-		
-		<dependency>
-			<groupId>org.openmrs.module</groupId>
-			<artifactId>reporting-api</artifactId>
-			<version>${reportingVersion}</version>
-			<type>jar</type>
-			<scope>provided</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.openmrs.module</groupId>
-			<artifactId>htmlwidgets-api</artifactId>
-			<version>${htmlwidgetsVersion}</version>
-			<type>jar</type>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.openmrs.module</groupId>
-			<artifactId>serialization.xstream-api</artifactId>
-			<version>${serializationxstreamVersion}</version>
-			<type>jar</type>
-			<scope>provided</scope>
-		</dependency>
-
-        <dependency>
-            <groupId>org.openmrs.module</groupId>
-            <artifactId>calculation-api</artifactId>
-            <version>${calculationVersion}</version>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
 
 		<dependency>
 			<groupId>org.openmrs.module</groupId>
@@ -61,7 +29,7 @@
 
         <dependency>
 			<groupId>org.openmrs.module</groupId>
-			<artifactId>webservices.rest-omod</artifactId>
+			<artifactId>webservices.rest-omod-1.8</artifactId>
 			<version>${webservicesRestVersion}</version>
 			<type>jar</type>
 			<scope>provided</scope>
@@ -72,7 +40,7 @@
 			<artifactId>reportingrest-api</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.openmrs.api</groupId>
 			<artifactId>openmrs-api</artifactId>
@@ -97,6 +65,12 @@
 			<groupId>org.openmrs.test</groupId>
 			<artifactId>openmrs-test</artifactId>
 			<type>pom</type>
+		</dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
 		</dependency>
 	</dependencies>
 

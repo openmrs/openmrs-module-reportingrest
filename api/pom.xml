@@ -18,14 +18,7 @@
 			<artifactId>library-name</artifactId>
 		</dependency>
 		-->
-		
-		<dependency>
-			<groupId>org.openmrs.module</groupId>
-			<artifactId>webservices.rest-omod-common</artifactId>
-			<version>${webservicesRestVersion}</version>
-			<type>jar</type>
-		</dependency>
-		
+
 		<dependency>
 			<groupId>org.openmrs.api</groupId>
 			<artifactId>openmrs-api</artifactId>
@@ -51,6 +44,11 @@
 			<artifactId>openmrs-test</artifactId>
 			<type>pom</type>
 		</dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 </project>
