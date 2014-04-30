@@ -15,27 +15,23 @@ package org.openmrs.module.reportingrest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.module.Activator;
+import org.openmrs.module.BaseModuleActivator;
 
 /**
  * This class contains the logic that is run every time this module
  * is either started or shutdown
  */
-public class ModuleActivator implements Activator {
+public class ModuleActivator extends BaseModuleActivator {
 
 	private Log log = LogFactory.getLog(this.getClass());
 
-	/**
-	 * @see org.openmrs.module.Activator#startup()
-	 */
-	public void startup() {
-		log.info("Starting reportingrest module");
+	@Override
+	public void started() {
+		log.info("reportingrest module started");
 	}
-	
-	/**
-	 *  @see org.openmrs.module.Activator#shutdown()
-	 */
-	public void shutdown() {
-		log.info("Shutting down reportingrest module");
+
+	@Override
+	public void stopped() {
+		log.info("reportingrest module stopped");
 	}
 }

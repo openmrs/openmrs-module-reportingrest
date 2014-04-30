@@ -14,24 +14,19 @@
 
 package org.openmrs.module.reportingrest.adhoc.task;
 
-import org.openmrs.module.reporting.report.task.AbstractReportsTask;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.reporting.report.task.ReportingTask;
 import org.openmrs.module.reportingrest.adhoc.AdHocExportManager;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @see org.openmrs.module.reportingrest.adhoc.AdHocExportManager#deleteTransientReportDefinitions()
  */
-public class DeleteOldOldAdHocReportDefinitionsTask extends AbstractReportsTask  {
+public class DeleteOldOldAdHocReportDefinitionsTask extends ReportingTask {
 
-    @Autowired
-    AdHocExportManager adHocExportManager;
-
-    /**
-     * @see org.openmrs.module.reportingrest.adhoc.AdHocExportManager#deleteTransientReportDefinitions()
-     */
-    @Override
-    public synchronized void execute() {
-        adHocExportManager.deleteTransientReportDefinitions();
-    }
+	@Override
+	public synchronized void executeTask() {
+		AdHocExportManager m = Context.getRegisteredComponents(AdHocExportManager.class).get(0);
+		m.deleteTransientReportDefinitions();
+	}
 
 }

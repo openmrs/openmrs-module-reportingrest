@@ -23,7 +23,7 @@
 	</modules>
 
     <properties>
-        <openMRSVersion>1.8.3</openMRSVersion>
+        <openMRSVersion>1.9.2</openMRSVersion>
         <webservicesRestVersion>2.5-SNAPSHOT</webservicesRestVersion>
         <reportingVersion>0.8.3-SNAPSHOT</reportingVersion>
         <htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>

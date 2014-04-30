@@ -13,13 +13,24 @@
 
 	<context:component-scan base-package="@MODULE_PACKAGE@" />
 
-    <bean id="deleteOldAdHocReportDefinitionsTask" class="org.openmrs.module.reportingrest.adhoc.task.DeleteOldOldAdHocReportDefinitionsTask"/>
+	<bean id="deleteOldAdHocReportDefinitionsTask" class="org.openmrs.module.reporting.report.task.ReportingTimerTask">
+		<property name="taskClass" value="org.openmrs.module.reportingrest.adhoc.task.DeleteOldOldAdHocReportDefinitionsTask"/>
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
 
-    <bean id="deleteOldAdHocReportDefinitionsTimerTask" class="org.springframework.scheduling.timer.ScheduledTimerTask">
-        <property name="delay" value="60000" /> <!-- delay 60 seconds -->
-        <property name="period" value="3600000" /> <!-- run every hour -->
-        <property name="timerTask" ref="deleteOldAdHocReportDefinitionsTask"/>
-    </bean>
+	<bean id="deleteOldAdHocReportDefinitionsTimerTask" class="org.springframework.scheduling.concurrent.ScheduledExecutorTask">
+		<property name="delay" value="10000" /> <!-- delay 60 seconds -->
+		<property name="period" value="3600000" /> <!-- run every hour -->
+		<property name="runnable" ref="deleteOldAdHocReportDefinitionsTask"/>
+	</bean>
+
+	<bean id="reportingRestTimerFactory" class="org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean">
+		<property name="scheduledExecutorTasks">
+			<list>
+				<ref bean="deleteOldAdHocReportDefinitionsTimerTask"/>
+			</list>
+		</property>
+	</bean>
 
 </beans>
 
