@@ -226,9 +226,11 @@ public class AdHocQueryResource implements Creatable {
 
     private Mapped<Query> mapMissingParametersStraightThrough(Query cd, Map<String, Object> parameterValues) {
         Map<String, Object> mappings = new HashMap<String, Object>();
-        for (Parameter parameter : cd.getParameters()) {
-            if (parameterValues.get(parameter.getName()) == null) {
-                mappings.put(parameter.getName(), parameter.getExpression());
+        if (parameterValues != null) {
+            for (Parameter parameter : cd.getParameters()) {
+                if (parameterValues.get(parameter.getName()) == null) {
+                    mappings.put(parameter.getName(), parameter.getExpression());
+                }
             }
         }
 
