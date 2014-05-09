@@ -19,17 +19,15 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.CompositionCohortDefinition;
-import org.openmrs.module.reporting.cohort.definition.DefinitionLibraryCohortDefinition;
 import org.openmrs.module.reporting.dataset.column.definition.RowPerObjectColumnDefinition;
 import org.openmrs.module.reporting.dataset.definition.PatientDataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.RowPerObjectDataSetDefinition;
 import org.openmrs.module.reporting.definition.library.AllDefinitionLibraries;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
-import org.openmrs.module.reporting.evaluation.parameter.Parameterizable;
-import org.openmrs.module.reporting.query.Query;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -54,9 +52,6 @@ public class AdHocDataSet {
 
     @JsonProperty
     private List<AdHocParameter> parameters;
-
-    @JsonProperty
-    private Map<String, Object> parameterValues;
 
     @JsonProperty
     private List<AdHocRowFilter> rowFilters;
@@ -247,11 +242,18 @@ public class AdHocDataSet {
         this.columns = columns;
     }
 
+    /**
+     * Top-level parameter values are submitted from the client as a property on the parameter itself, but reporting
+     * tends to expect a free-standing "Map<String, Object> parameterValues". This convenience method will get that
+     * for you
+     * @return a Map of parameter names to values, (pulled out of the "parameters" property)
+     */
     public Map<String, Object> getParameterValues() {
-        return parameterValues;
+        Map<String, Object> byName = new HashMap<String, Object>();
+        for (AdHocParameter parameter : getParameters()) {
+            byName.put(parameter.getName(), parameter.getValue());
+        }
+        return byName;
     }
 
-    public void setParameterValues(Map<String, Object> parameterValues) {
-        this.parameterValues = parameterValues;
-    }
 }

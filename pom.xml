@@ -29,6 +29,7 @@
         <htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>
         <serializationxstreamVersion>0.2.7</serializationxstreamVersion>
         <calculationVersion>1.0</calculationVersion>
+        <openmrsTestutilsVersion>1.1</openmrsTestutilsVersion>
     </properties>
 
     <dependencyManagement>
@@ -121,6 +122,13 @@
             <version>${calculationVersion}</version>
             <type>jar</type>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openmrs.contrib</groupId>
+            <artifactId>testutils</artifactId>
+            <version>${openmrsTestutilsVersion}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

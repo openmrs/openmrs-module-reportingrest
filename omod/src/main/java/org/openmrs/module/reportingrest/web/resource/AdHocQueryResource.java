@@ -31,6 +31,7 @@ import org.openmrs.module.reporting.definition.library.AllDefinitionLibraries;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
+import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.query.IdSet;
 import org.openmrs.module.reporting.query.Query;
 import org.openmrs.module.reportingrest.SimpleIdSet;
@@ -38,9 +39,9 @@ import org.openmrs.module.reportingrest.adhoc.AdHocColumn;
 import org.openmrs.module.reportingrest.adhoc.AdHocDataSet;
 import org.openmrs.module.reportingrest.adhoc.AdHocParameter;
 import org.openmrs.module.reportingrest.adhoc.AdHocRowFilter;
+import org.openmrs.module.reportingrest.util.ParameterUtil;
 import org.openmrs.module.reportingrest.web.AdHocRowFilterResults;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
-import org.openmrs.module.reportingrest.util.ParameterUtil;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -52,6 +53,7 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.openmrs.util.OpenmrsUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -145,7 +147,7 @@ public class AdHocQueryResource implements Creatable {
             throw new IllegalArgumentException("Error in parameter", e);
         }
 
-        List<Query> queries = new ArrayList<Query>();
+        List<Mapped> queries = new ArrayList<Mapped>();
         for (AdHocRowFilter rowFilter : adHocDataSet.getRowFilters()) {
             DefinitionLibraryCohortDefinition cd = new DefinitionLibraryCohortDefinition(rowFilter.getKey());
             cd.loadParameters(getLibraries());
@@ -154,10 +156,11 @@ public class AdHocQueryResource implements Creatable {
             } catch (Exception e) {
                 throw new IllegalArgumentException("Error in rowFilter " + rowFilter.getKey(), e);
             }
-            queries.add(cd);
+            Mapped<? extends Query> mappedQuery = mapMissingParametersStraightThrough(cd, rowFilter.getParameterValues());
+            queries.add(mappedQuery);
 
             try {
-                EvaluatedCohort evaluated = cohortDefinitionService.evaluate(cd, evaluationContext);
+                EvaluatedCohort evaluated = cohortDefinitionService.evaluate((Mapped<CohortDefinition>) mappedQuery, evaluationContext);
                 rowFilterResults.addResult(simplify(evaluated));
             } catch (EvaluationException e) {
                 throw new IllegalStateException("Failed to evaluate: " + rowFilter.getKey(), e);
@@ -165,8 +168,10 @@ public class AdHocQueryResource implements Creatable {
         }
 
         CompositionCohortDefinition cd = new CompositionCohortDefinition();
+        cd.setParameters(dsd.getParameters());
         for (int i = 0; i < queries.size(); ++i) {
-            cd.addSearch("" + (i + 1), (CohortDefinition) queries.get(i), null);
+            Mapped<CohortDefinition> mapped = queries.get(i);
+            cd.addSearch("" + (i + 1), mapped);
         }
         if (StringUtils.isEmpty(adHocDataSet.getCustomRowFilterCombination())) {
             adHocDataSet.setCustomRowFilterCombination(defaultCompositionString(queries.size()));
@@ -217,6 +222,17 @@ public class AdHocQueryResource implements Creatable {
         }
         return o;
 
+    }
+
+    private Mapped<Query> mapMissingParametersStraightThrough(Query cd, Map<String, Object> parameterValues) {
+        Map<String, Object> mappings = new HashMap<String, Object>();
+        for (Parameter parameter : cd.getParameters()) {
+            if (parameterValues.get(parameter.getName()) == null) {
+                mappings.put(parameter.getName(), parameter.getExpression());
+            }
+        }
+
+        return new Mapped<Query>(cd, mappings);
     }
 
     private IdSet simplify(IdSet<?> complex) {

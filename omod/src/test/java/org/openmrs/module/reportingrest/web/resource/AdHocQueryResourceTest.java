@@ -21,12 +21,12 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+import org.openmrs.contrib.testdata.TestDataManager;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.library.BuiltInCohortDefinitionLibrary;
 import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionService;
 import org.openmrs.module.reporting.data.patient.definition.PatientDataDefinition;
 import org.openmrs.module.reporting.data.patient.library.BuiltInPatientDataLibrary;
-import org.openmrs.module.reporting.data.person.definition.PersonDataDefinition;
 import org.openmrs.module.reporting.dataset.definition.PatientDataSetDefinition;
 import org.openmrs.module.reporting.query.IdSet;
 import org.openmrs.module.reportingrest.web.AdHocRowFilterResults;
@@ -44,10 +44,12 @@ import java.util.Set;
 
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class AdHocQueryResourceTest extends BaseModuleWebContextSensitiveTest {
+
+    @Autowired
+    TestDataManager testData;
 
     @Autowired
     CohortDefinitionService cohortDefinitionService;
@@ -101,10 +103,57 @@ public class AdHocQueryResourceTest extends BaseModuleWebContextSensitiveTest {
         System.out.println(toJson(result));
     }
 
+    @Test
+    public void testRowQueryWithSomeParametersSetAndSomeGlobal() throws Exception {
+        String ENCOUNTER_TYPE_UUID = "07000be2-26b6-4cce-8b40-866d8435b613";
+
+        // someone other than patient 7 else needs to have an encounter of this type, outside the time window, so we
+        // know parameters are really being applied
+        testData.encounter().encounterDatetime("2001-01-01").encounterType(ENCOUNTER_TYPE_UUID).patient(2).save();
+
+        ObjectMapper jackson = new ObjectMapper();
+        ObjectNode post = setupBasicPost(jackson);
+
+        ArrayNode rowFilters = post.putArray("rowFilters");
+        ObjectNode q = addRowFilter(rowFilters, CohortDefinition.class.getName(), BuiltInCohortDefinitionLibrary.PREFIX + "anyEncounterOfTypesDuringPeriod");
+        ArrayNode encounterTypes = parameterValues(q).putArray("encounterTypes");
+        ObjectNode encounterType = encounterTypes.addObject();
+        encounterType.put("uuid", ENCOUNTER_TYPE_UUID);
+        encounterType.put("display", "Emergency");
+
+        String json = jackson.writeValueAsString(post);
+
+        RequestContext requestContext = new RequestContext();
+        requestContext.setRepresentation(new NamedRepresentation("rowFilters"));
+
+        AdHocQueryResource resource = new AdHocQueryResource();
+        AdHocRowFilterResults result = (AdHocRowFilterResults) resource.create(jackson.readValue(json, SimpleObject.class), requestContext);
+
+        System.out.println(toJson(result));
+
+        assertThat(result.getIndividualResults().size(), is(1));
+        assertThat(result.getResult(), hasExactlyIds(7));
+
+        assertThat(result.getIndividualResults().get(0), hasExactlyIds(7));
+    }
+
     private String adHocDataExportAsJson(ObjectMapper jackson) throws IOException {
+        ObjectNode post = setupBasicPost(jackson);
+        post.put("customRowFilterCombination", "1 OR 2 OR 3");
+
+        ArrayNode rowFilters = post.putArray("rowFilters");
+        addRowFilter(rowFilters, CohortDefinition.class.getName(), BuiltInCohortDefinitionLibrary.PREFIX + "males");
+        addRowFilter(rowFilters, CohortDefinition.class.getName(), BuiltInCohortDefinitionLibrary.PREFIX + "anyEncounterDuringPeriod");
+        ObjectNode q = addRowFilter(rowFilters, CohortDefinition.class.getName(), BuiltInCohortDefinitionLibrary.PREFIX + "atLeastAgeOnDate");
+        parameterValues(q).put("minAge", 15);
+        parameterValues(q).put("effectiveDate", "2014-01-01");
+
+        return jackson.writeValueAsString(post);
+    }
+
+    private ObjectNode setupBasicPost(ObjectMapper jackson) {
         ObjectNode post = jackson.createObjectNode();
         post.put("type", PatientDataSetDefinition.class.getName());
-        post.put("customRowFilterCombination", "1 OR 2 OR 3");
         ArrayNode parameters = post.putArray("parameters");
 
         ObjectNode startDate = parameters.addObject();
@@ -117,18 +166,10 @@ public class AdHocQueryResourceTest extends BaseModuleWebContextSensitiveTest {
         endDate.put("type", "java.util.Date");
         endDate.put("value", "2008-08-31");
 
-        ArrayNode rowFilters = post.putArray("rowFilters");
-        addRowFilter(rowFilters, CohortDefinition.class.getName(), BuiltInCohortDefinitionLibrary.PREFIX + "males");
-        addRowFilter(rowFilters, CohortDefinition.class.getName(), BuiltInCohortDefinitionLibrary.PREFIX + "anyEncounterDuringPeriod");
-        ObjectNode q = addRowFilter(rowFilters, CohortDefinition.class.getName(), BuiltInCohortDefinitionLibrary.PREFIX + "atLeastAgeOnDate");
-        parameterValues(q).put("minAge", 15);
-        parameterValues(q).put("effectiveDate", "2014-01-01");
-
         ArrayNode columns = post.putArray("columns");
         addColumn(columns, PatientDataDefinition.class.getName(), "Given Name", BuiltInPatientDataLibrary.PREFIX + "preferredName.givenName");
         addColumn(columns, PatientDataDefinition.class.getName(), "Family Name", BuiltInPatientDataLibrary.PREFIX + "preferredName.familyName");
-
-        return jackson.writeValueAsString(post);
+        return post;
     }
 
     private ObjectNode parameterValues(ObjectNode query) {
