@@ -22,36 +22,31 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Test;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
-import org.openmrs.module.reporting.cohort.definition.EncounterCohortDefinition;
-import org.openmrs.module.reporting.cohort.definition.GenderCohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.library.BuiltInCohortDefinitionLibrary;
-import org.openmrs.module.reporting.common.DateUtil;
 import org.openmrs.module.reporting.data.patient.definition.PatientDataDefinition;
 import org.openmrs.module.reporting.data.patient.library.BuiltInPatientDataLibrary;
 import org.openmrs.module.reporting.dataset.definition.PatientDataSetDefinition;
+import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinitionService;
 import org.openmrs.module.reportingrest.adhoc.AdHocDataSet;
-import org.openmrs.module.reportingrest.web.AdHocRowFilterResults;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
-import org.openmrs.module.webservices.rest.web.api.RestService;
 import org.openmrs.module.webservices.rest.web.representation.NamedRepresentation;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertThat;
 
 public class AdHocDataSetResourceTest extends BaseModuleWebContextSensitiveTest {
+
+    @Autowired
+    DataSetDefinitionService dataSetDefinitionService;
 
     @Test
     public void testCreate() throws Exception {
@@ -170,6 +165,25 @@ public class AdHocDataSetResourceTest extends BaseModuleWebContextSensitiveTest 
         query.put("name", name);
         query.put("key", definitionKey);
         return query;
+    }
+
+    @Test
+    public void testPurge() throws Exception {
+        // relying on resource.create for this is bad style, but I'm doing it for convenience
+        ObjectMapper jackson = new ObjectMapper();
+        String json = adHocDataExportAsJson(jackson);
+
+        RequestContext createContext = new RequestContext();
+        createContext.setRepresentation(new NamedRepresentation("rowFilters"));
+
+        AdHocDataSetResource resource = new AdHocDataSetResource();
+        AdHocDataSet created = (AdHocDataSet) resource.create(jackson.readValue(json, SimpleObject.class), createContext);
+
+        assertThat(dataSetDefinitionService.getDefinitionByUuid(created.getUuid()), notNullValue());
+
+        resource.purge(created.getUuid(), new RequestContext());
+
+        assertThat(dataSetDefinitionService.getDefinitionByUuid(created.getUuid()), nullValue());
     }
 
 }

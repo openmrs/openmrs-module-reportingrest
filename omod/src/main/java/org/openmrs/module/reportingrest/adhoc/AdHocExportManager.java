@@ -15,6 +15,7 @@
 package org.openmrs.module.reportingrest.adhoc;
 
 import org.openmrs.User;
+import org.openmrs.api.APIAuthenticationException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.RowPerObjectDataSetDefinition;
@@ -64,8 +65,11 @@ public class AdHocExportManager {
         List<AdHocDataSet> list = new ArrayList<AdHocDataSet>();
         for (DefinitionSummary summary : dataSetDefinitionService.getAllDefinitionSummaries(false)) {
             if (summary.getName().startsWith(NAME_PREFIX)) {
-                DataSetDefinition dsd = dataSetDefinitionService.getDefinitionByUuid(summary.getUuid());
-                if (user != null && !user.equals(dsd.getCreator())) {
+                RowPerObjectDataSetDefinition dsd;
+                try {
+                    dsd = getAdHocDataSetByUuid(summary.getUuid());
+                }
+                catch (APIAuthenticationException ex) {
                     continue;
                 }
                 list.add(new AdHocDataSet(dsd));
@@ -86,7 +90,33 @@ public class AdHocExportManager {
             return null;
         }
         verifyAdHoc(dsd);
-        return (RowPerObjectDataSetDefinition) dsd;
+        if (canView(Context.getAuthenticatedUser(), dsd)) {
+            return (RowPerObjectDataSetDefinition) dsd;
+        }
+        else {
+            throw new APIAuthenticationException(Context.getAuthenticatedUser() + " does not have permission to view this data set");
+        }
+    }
+
+    /**
+     * @param dataSetDefinition
+     */
+    public void purgeAdHocDataSet(RowPerObjectDataSetDefinition dataSetDefinition) {
+        verifyAdHoc(dataSetDefinition);
+        if (canEdit(Context.getAuthenticatedUser(), dataSetDefinition)) {
+            dataSetDefinitionService.purgeDefinition(dataSetDefinition);
+        }
+        else {
+            throw new APIAuthenticationException(Context.getAuthenticatedUser() + " does not have permission to edit this data set");
+        }
+    }
+
+    private boolean canView(User user, DataSetDefinition dsd) {
+        return dsd.getCreator().equals(user);
+    }
+
+    private boolean canEdit(User user, DataSetDefinition dataSetDefinition) {
+        return canView(user, dataSetDefinition);
     }
 
     public ReportRequest buildExportRequest(List<String> dsdUuids, Map<String, Object> paramValues, RenderingMode renderingMode) {
