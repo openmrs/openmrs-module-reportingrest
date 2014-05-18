@@ -25,7 +25,7 @@ public class AdHocParameter {
     @JsonProperty
     private String name;
 
-    @JsonProperty
+    // @JsonProperty annotation is on accessors, for localization
     private String label;
 
     @JsonProperty
@@ -57,10 +57,12 @@ public class AdHocParameter {
         this.name = name;
     }
 
+    @JsonProperty
     public String getLabel() {
-        return label;
+        return label == null ? null : Context.getMessageSourceService().getMessage(label);
     }
 
+    @JsonProperty
     public void setLabel(String label) {
         this.label = label;
     }
