@@ -212,6 +212,18 @@ public class AdHocQueryResource implements Creatable {
         }
         else { // no row filters
             allRows = Cohorts.allPatients(evaluationContext);
+            if (context.getRepresentation().getRepresentation().equals("preview")) {
+                Cohort cohort = new Cohort();
+                int j = 0;
+                for (Integer member : rowFilterResults.getResult().getMemberIds()) {
+                    j += 1;
+                    cohort.addMember(member);
+                    if (j >= 10) {
+                        break;
+                    }
+                }
+                evaluationContext.setBaseCohort(cohort);
+            }
         }
 
         DataSet data = null;
