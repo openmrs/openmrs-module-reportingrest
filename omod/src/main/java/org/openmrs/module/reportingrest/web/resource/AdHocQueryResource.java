@@ -215,7 +215,7 @@ public class AdHocQueryResource implements Creatable {
             if (context.getRepresentation().getRepresentation().equals("preview")) {
                 Cohort cohort = new Cohort();
                 int j = 0;
-                for (Integer member : rowFilterResults.getResult().getMemberIds()) {
+                for (Integer member : allRows.getMemberIds()) {
                     j += 1;
                     cohort.addMember(member);
                     if (j >= 10) {
