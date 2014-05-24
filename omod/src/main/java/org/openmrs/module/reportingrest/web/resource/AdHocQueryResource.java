@@ -18,6 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.openmrs.Cohort;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.reporting.cohort.Cohorts;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.CompositionCohortDefinition;
@@ -167,47 +168,51 @@ public class AdHocQueryResource implements Creatable {
             }
         }
 
-        CompositionCohortDefinition cd = new CompositionCohortDefinition();
-        cd.setParameters(dsd.getParameters());
-        for (int i = 0; i < queries.size(); ++i) {
-            Mapped<CohortDefinition> mapped = queries.get(i);
-            cd.addSearch("" + (i + 1), mapped);
-        }
-        if (StringUtils.isEmpty(adHocDataSet.getCustomRowFilterCombination())) {
-            adHocDataSet.setCustomRowFilterCombination(defaultCompositionString(queries.size()));
-        }
-        cd.setCompositionString(adHocDataSet.getCustomRowFilterCombination());
-
         EvaluatedCohort allRows;
-        try {
-            allRows = cohortDefinitionService.evaluate(cd, evaluationContext);
-            rowFilterResults.setResult(new SimpleIdSet(allRows.getMemberIds()));
-        } catch (EvaluationException e) {
-            throw new IllegalArgumentException("Failed to evaluate composition: " + adHocDataSet.getCustomRowFilterCombination(), e);
-        }
-
-        if (context.getRepresentation().getRepresentation().equals("rowFilters")) {
-            return rowFilterResults;
-        }
-
-        Cohort cohort;
-        if (context.getRepresentation().getRepresentation().equals("preview")) {
-            // for preview purposes, we just evaluate on a small number of rows
-            cohort = new Cohort();
-            int j = 0;
-            for (Integer member : rowFilterResults.getResult().getMemberIds()) {
-                j += 1;
-                cohort.addMember(member);
-                if (j >= 10) {
-                    break;
-                }
+        if (queries.size() > 0) {
+            CompositionCohortDefinition cd = new CompositionCohortDefinition();
+            cd.setParameters(dsd.getParameters());
+            for (int i = 0; i < queries.size(); ++i) {
+                Mapped<CohortDefinition> mapped = queries.get(i);
+                cd.addSearch("" + (i + 1), mapped);
             }
-        }
-        else {
-            cohort = allRows;
-        }
+            if (StringUtils.isEmpty(adHocDataSet.getCustomRowFilterCombination())) {
+                adHocDataSet.setCustomRowFilterCombination(defaultCompositionString(queries.size()));
+            }
+            cd.setCompositionString(adHocDataSet.getCustomRowFilterCombination());
 
-        evaluationContext.setBaseCohort(cohort);
+            try {
+                allRows = cohortDefinitionService.evaluate(cd, evaluationContext);
+                rowFilterResults.setResult(new SimpleIdSet(allRows.getMemberIds()));
+            } catch (EvaluationException e) {
+                throw new IllegalArgumentException("Failed to evaluate composition: " + adHocDataSet.getCustomRowFilterCombination(), e);
+            }
+
+            if (context.getRepresentation().getRepresentation().equals("rowFilters")) {
+                return rowFilterResults;
+            }
+
+            Cohort cohort;
+            if (context.getRepresentation().getRepresentation().equals("preview")) {
+                // for preview purposes, we just evaluate on a small number of rows
+                cohort = new Cohort();
+                int j = 0;
+                for (Integer member : rowFilterResults.getResult().getMemberIds()) {
+                    j += 1;
+                    cohort.addMember(member);
+                    if (j >= 10) {
+                        break;
+                    }
+                }
+            } else {
+                cohort = allRows;
+            }
+
+            evaluationContext.setBaseCohort(cohort);
+        }
+        else { // no row filters
+            allRows = Cohorts.allPatients(evaluationContext);
+        }
 
         DataSet data = null;
         try {

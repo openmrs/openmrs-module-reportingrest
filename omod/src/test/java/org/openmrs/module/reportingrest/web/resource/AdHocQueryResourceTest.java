@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -87,6 +88,20 @@ public class AdHocQueryResourceTest extends BaseModuleWebContextSensitiveTest {
         Object result = resource.create(jackson.readValue(json, SimpleObject.class), requestContext);
 
         System.out.println(toJson(result));
+    }
+
+    @Test
+    public void testPreviewWithNoFilters() throws Exception {
+        ObjectMapper jackson = new ObjectMapper();
+        String json = jackson.writeValueAsString(setupBasicPost(jackson));
+
+        RequestContext requestContext = new RequestContext();
+        requestContext.setRepresentation(new NamedRepresentation("preview"));
+
+        AdHocQueryResource resource = new AdHocQueryResource();
+        Object result = resource.create(jackson.readValue(json, SimpleObject.class), requestContext);
+
+        assertThat(((IdSet) ((SimpleObject) result).get("allRows")).getSize(), is(not(0)));
     }
 
     @Test

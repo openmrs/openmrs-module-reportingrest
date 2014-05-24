@@ -51,13 +51,13 @@ public class AdHocDataSet {
     private String customRowFilterCombination;
 
     @JsonProperty
-    private List<AdHocParameter> parameters;
+    private List<AdHocParameter> parameters = new ArrayList<AdHocParameter>();
 
     @JsonProperty
-    private List<AdHocRowFilter> rowFilters;
+    private List<AdHocRowFilter> rowFilters = new ArrayList<AdHocRowFilter>();
 
     @JsonProperty
-    private List<AdHocColumn> columns;
+    private List<AdHocColumn> columns = new ArrayList<AdHocColumn>();
 
     public AdHocDataSet() {
     }
