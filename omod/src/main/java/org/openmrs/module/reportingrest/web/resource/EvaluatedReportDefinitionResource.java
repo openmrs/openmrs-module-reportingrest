@@ -27,7 +27,7 @@ import java.util.List;
 /**
  *
  */
-@Resource(name = RestConstants.VERSION_1 + "/reportingrest/reportdata", supportedClass = ReportData.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*"})
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/reportdata", supportedClass = ReportData.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*"})
 public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportData> {
 
     private Log log = LogFactory.getLog(getClass());
