@@ -27,7 +27,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
  * {@link Resource} for {@link CohortDefinition}s, supporting standard CRUD operations
  */
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/cohortDefinition",
-        supportedClass = CohortDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*"})
+        supportedClass = CohortDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*"})
 public class CohortDefinitionResource extends BaseDefinitionResource<CohortDefinition> {
 
 	/**
