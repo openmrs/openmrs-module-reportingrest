@@ -17,6 +17,7 @@ import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.springframework.util.StringUtils;
 
@@ -53,7 +54,10 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
         return new ArrayList<DataSet>(delegate.getDataSets().values());
     }
 
-    @Override
+	/**
+	 * @should throw ObjectNotFoundException if resource does not exist
+	 */
+	@Override
     public Object retrieve(String uuid, RequestContext requestContext)
             throws ResponseException {
 
@@ -61,6 +65,9 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
 
         // the passed in uuid is the DataSetDefinition uuid
         ReportDefinition definition = reportDefinitionService.getDefinitionByUuid(uuid);
+	    if (definition == null) {
+		    throw new ObjectNotFoundException();
+	    }
 
         EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext);
 
