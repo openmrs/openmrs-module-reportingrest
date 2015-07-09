@@ -9,7 +9,9 @@ import org.openmrs.module.reporting.report.ReportData;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.webservices.rest.SimpleObject;
+import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.ExpectedException;
 
 import java.util.Date;
 
@@ -56,4 +58,12 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
         System.out.println(toJson(response));
     }
 
+	/**
+	 * @verifies throw ObjectNotFoundException if resource does not exist
+	 */
+	@Test
+	@ExpectedException(value = ObjectNotFoundException.class)
+	public void retrieve_shouldThrowObjectNotFoundExceptionIfResourceDoesNotExist() throws Exception {
+		getResource().retrieve("not-existing", buildRequestContext("startDate", "1975-01-01", "endDate", "1976-12-31"));
+	}
 }
