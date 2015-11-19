@@ -23,9 +23,9 @@
 	</modules>
 
     <properties>
-        <openMRSVersion>1.9.2</openMRSVersion>
+        <openMRSVersion>1.9.9</openMRSVersion>
         <webservicesRestVersion>2.5</webservicesRestVersion>
-        <reportingVersion>0.9.1</reportingVersion>
+        <reportingVersion>0.9.9-SNAPSHOT</reportingVersion>
         <htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>
         <serializationxstreamVersion>0.2.7</serializationxstreamVersion>
         <calculationVersion>1.0</calculationVersion>
