@@ -13,9 +13,7 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.openmrs.annotation.Handler;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
-import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -27,7 +25,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
  * {@link Resource} for {@link CohortDefinition}s, supporting standard CRUD operations
  */
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/cohortDefinition",
-        supportedClass = CohortDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*"})
+        supportedClass = CohortDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*"})
 public class CohortDefinitionResource extends BaseDefinitionResource<CohortDefinition> {
 
 	/**
