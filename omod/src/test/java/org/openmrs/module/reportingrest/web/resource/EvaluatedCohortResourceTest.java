@@ -76,10 +76,8 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 		Object evaluated = getResource().retrieve(BuiltInCohortDefinitionLibrary.PREFIX + "males", buildRequestContext());
 		String json = toJson(evaluated);
 
-//		assertThat((String) path(evaluated, "definition", "name"), is("Males"));
-//		assertThat((String) path(evaluated, "definition", "description"), is("male patients"));
-//		assertThat((String) path(evaluated, "definition", "uuid"), is(UUID));
-//		assertTrue(hasLink(evaluated, "self", "/cohort/" + UUID));
+		assertThat((String) path(evaluated, "definition", "name"), is("Males"));
+		assertThat((String) path(evaluated, "definition", "uuid"), is("reporting.library.cohortDefinition.builtIn.males"));
 
 		// should include patients 2 and 6 from standard test dataset. their uuids are:
 		String[] expectedUuids = new String[] { "da7f524f-27ce-4bb2-86d6-6d1d05312bd5", "a7e04421-525f-442f-8138-05b619d16def" };
