@@ -21,8 +21,8 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionService;
-import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
+import org.openmrs.module.reporting.definition.library.AllDefinitionLibraries;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
@@ -56,6 +56,9 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 		// evaluate the cohort
 		// the passed in uuid is the CohortDefinition uuid
 		EvaluatedCohort evaluatedCohort = getEvaluatedCohort(uuid, requestContext, StringUtils.EMPTY);
+		if (evaluatedCohort == null) {
+			return null;
+		}
 		return asRepresentation(evaluatedCohort, requestContext.getRepresentation());
 	}
 
@@ -71,13 +74,19 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 		if (parameterPrefix == null)
 			parameterPrefix = "";
 
+		AllDefinitionLibraries definitionLibraries = Context.getRegisteredComponents(AllDefinitionLibraries.class).get(0);
 		CohortDefinitionService cohortDefinitionService = DefinitionContext.getCohortDefinitionService();
 
-		CohortDefinition definition = cohortDefinitionService.getDefinitionByUuid(uuid);
+		CohortDefinition definition = definitionLibraries.getDefinition(CohortDefinition.class, uuid);
+
+		if (definition == null) {
+			definition = cohortDefinitionService.getDefinitionByUuid(uuid);
+		}
 
 		// fail early if the def doesn't exist
-		if (definition == null)
+		if (definition == null) {
 			return null;
+		}
 
         EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext);
 
