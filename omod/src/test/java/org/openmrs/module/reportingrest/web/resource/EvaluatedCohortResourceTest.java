@@ -88,5 +88,8 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 		}
 	}
 
-
+	@Test(expected = IllegalArgumentException.class)
+	public void evaluateWithMissingParametersShouldThrowClientException() throws Exception {
+		Object evaluated = getResource().retrieve(BuiltInCohortDefinitionLibrary.PREFIX + "atLeastAgeOnDate", buildRequestContext());
+	}
 }
