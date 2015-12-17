@@ -16,6 +16,7 @@ package org.openmrs.module.reportingrest.web.resource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Cohort;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.dataset.DataSet;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
@@ -24,10 +25,12 @@ import org.openmrs.module.reporting.dataset.DataSetRow;
 import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinitionService;
 import org.openmrs.module.reporting.definition.DefinitionContext;
+import org.openmrs.module.reporting.evaluation.Evaluated;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reporting.indicator.IndicatorResult;
 import org.openmrs.module.reporting.query.IdSet;
+import org.openmrs.module.reporting.serializer.ReportingSerializer;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -36,6 +39,7 @@ import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.springframework.util.StringUtils;
 
@@ -58,39 +62,61 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 	public Object retrieve(String uuid, RequestContext requestContext)
 			throws ResponseException {
 
-
 		DataSetDefinitionService dataSetDefinitionService = DefinitionContext.getDataSetDefinitionService();
-		
-		// the passed in uuid is the DataSetDefinition uuid
-		DataSetDefinition definition = dataSetDefinitionService.getDefinitionByUuid(uuid);
+		DataSetDefinition definition = getDefinitionByUniqueId(dataSetDefinitionService, DataSetDefinition.class, uuid);
+		if (definition == null) {
+			throw new ObjectNotFoundException();
+		}
 
-        EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext);
+		EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext, null, null);
 
         HttpServletRequest httpRequest = requestContext.getRequest();
 
         // if there is a "cohort" parameter, use that to look for a CohortDefinition to run against, otherwise all patients
         String cohortUuid = httpRequest.getParameter("cohort");
         if (StringUtils.hasLength(cohortUuid)) {
-            EvaluatedCohort cohort = new EvaluatedCohortResource().getEvaluatedCohort(cohortUuid, requestContext, "cohort.");
-            evalContext.setBaseCohort(cohort);
+			try {
+				EvaluatedCohort cohort = new EvaluatedCohortResource().getEvaluatedCohort(cohortUuid, requestContext, "cohort.");
+				evalContext.setBaseCohort(cohort);
+			} catch (EvaluationException ex) {
+				throw new IllegalStateException("Failed to evaluated cohort", ex);
+			}
         }
 
-        // actually do the evaluation
-		DataSet dataSet = null;
 		try {
-			dataSet = dataSetDefinitionService.evaluate(definition, evalContext);
-			// there seems to be a bug in the underlying reporting module that doesn't set this
-			if (dataSet.getDefinition().getUuid() == null)
-				dataSet.getDefinition().setUuid(definition.getUuid());
-			if (dataSet.getDefinition().getName() == null)
-				dataSet.getDefinition().setName(definition.getName());
-			if (dataSet.getDefinition().getDescription() == null)
-				dataSet.getDefinition().setDescription(definition.getDescription());
-		} catch (EvaluationException e) {
-			log.error("Unable to evaluate definition with uuid: " + uuid);
+			DataSet dataSet = (DataSet) evaluate(definition, dataSetDefinitionService, evalContext);
+			return asRepresentation(dataSet, requestContext.getRepresentation());
+		} catch (EvaluationException ex) {
+			throw new IllegalArgumentException(ex);
 		}
-		
-		return asRepresentation(dataSet, requestContext.getRepresentation());
+	}
+
+	/**
+	 * We let the user POST the serialized XML version of a Definition to this resource in order to evaluate a non-saved
+	 * definition on the fly.
+	 *
+	 * @param postBody
+	 * @param context
+	 * @return
+	 * @throws ResponseException
+	 */
+	@Override
+	public Object create(SimpleObject postBody, RequestContext context) throws ResponseException {
+		Object serializedXml = postBody.get("serializedXml");
+		DataSetDefinition definition;
+		try {
+			String xml = (String) serializedXml;
+			definition = Context.getSerializationService().getSerializer(ReportingSerializer.class).deserialize(xml, DataSetDefinition.class);
+		} catch (Exception ex) {
+			throw new IllegalArgumentException("Invalid submitted data set definition", ex);
+		}
+		EvaluationContext evalContext = getEvaluationContextWithParameters(definition, context, null, postBody);
+		try {
+			Evaluated<DataSetDefinition> evaluated = evaluate(definition, DefinitionContext.getDataSetDefinitionService(), evalContext);
+			return asRepresentation((DataSet) evaluated, context.getRepresentation());
+		} catch (Exception ex) {
+			throw new IllegalArgumentException("Error evaluating data set definition", ex);
+		}
 	}
 
     @Override

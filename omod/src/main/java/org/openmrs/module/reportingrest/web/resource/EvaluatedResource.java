@@ -1,20 +1,23 @@
 package org.openmrs.module.reportingrest.web.resource;
 
+import org.openmrs.api.context.Context;
+import org.openmrs.module.reporting.definition.library.AllDefinitionLibraries;
+import org.openmrs.module.reporting.definition.service.DefinitionService;
 import org.openmrs.module.reporting.evaluation.Definition;
 import org.openmrs.module.reporting.evaluation.Evaluated;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
+import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RequestContext;
-import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Retrievable;
-import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
-import org.openmrs.module.webservices.rest.web.v1_0.wrapper.openmrs1_8.CohortMember1_8;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -81,13 +84,25 @@ public abstract class EvaluatedResource<T extends Evaluated> extends DelegatingC
         // not used
     }
 
-    protected EvaluationContext getEvaluationContextWithParameters(Definition definition, RequestContext requestContext) throws ConversionException {
+    /**
+     * Fetches all parameters needed for definition from the request. First looks at request parameters, and looks
+     * at postBody next
+     *
+     * @param definition
+     * @param requestContext
+     * @param parameterPrefix
+     * @param postBody optional
+     * @return
+     * @throws ConversionException
+     */
+    protected EvaluationContext getEvaluationContextWithParameters(Definition definition, RequestContext requestContext, String parameterPrefix, SimpleObject postBody) throws ConversionException {
         HttpServletRequest request = requestContext.getRequest();
         EvaluationContext evalContext = new EvaluationContext();
 
         // get the params off the requestContext and put them on the evalContext
         for (Parameter param : definition.getParameters()) {
-            Object convertedValue;
+            String paramName = StringUtils.hasText(parameterPrefix) ? parameterPrefix + param.getName() : param.getName();
+            Object convertedValue = null;
 
             if (param.getCollectionType() != null) {
                 Collection collection;
@@ -99,22 +114,63 @@ public abstract class EvaluatedResource<T extends Evaluated> extends DelegatingC
                     throw new IllegalStateException("Cannot handle collection type: " + param.getCollectionType());
                 }
 
-                for (String httpParamValue : request.getParameterValues(param.getName())) {
-                    collection.add(ConversionUtil.convert(httpParamValue, param.getType()));
+                if (request.getParameterValues(paramName) != null) {
+                    for (String httpParamValue : request.getParameterValues(paramName)) {
+                        collection.add(ConversionUtil.convert(httpParamValue, param.getType()));
+                    }
+                } else {
+                    // if there were no request params, look at the postBody
+                    Object posted = postBody.get(paramName);
+                    if (posted != null) {
+                        if (posted instanceof Collection) {
+                            for (Object item : ((Collection) posted)) {
+                                collection.add(ConversionUtil.convert(item, param.getType()));
+                            }
+                        } else {
+                            throw new IllegalArgumentException("Parameter " + paramName + " in POST body should be an array");
+                        }
+                    }
                 }
                 convertedValue = collection;
 
             } else {
-                String httpParamValue = request.getParameter(param.getName());
-                convertedValue = ConversionUtil.convert(httpParamValue, param.getType());
+                String httpParamValue = request.getParameter(paramName);
+                if (httpParamValue != null) {
+                    convertedValue = ConversionUtil.convert(httpParamValue, param.getType());
+                } else if (postBody != null) {
+                    convertedValue = ConversionUtil.convert(postBody.get(paramName), param.getType());
+                }
             }
 
-            if (convertedValue == null) {
-                throw new IllegalArgumentException("Missing parameter: " + param.getName());
+            if (param.isRequired() && convertedValue == null) {
+                throw new IllegalArgumentException("Missing parameter: " + paramName);
             }
 
-            evalContext.addParameterValue(param.getName(), convertedValue);
+            evalContext.addParameterValue(paramName, convertedValue);
         }
         return evalContext;
+    }
+
+    protected <Def extends Definition> Def getDefinitionByUniqueId(DefinitionService<Def> svc, Class<Def> clazz, String uniqueId) {
+        AllDefinitionLibraries definitionLibraries = Context.getRegisteredComponents(AllDefinitionLibraries.class).get(0);
+        Def definition = definitionLibraries.getDefinition(clazz, uniqueId);
+        if (definition == null) {
+            definition = svc.getDefinitionByUuid(uniqueId);
+        }
+        return definition;
+    }
+
+    protected <Def extends Definition> Evaluated<Def> evaluate(Def definition, DefinitionService<Def> svc, EvaluationContext ctx) throws EvaluationException {
+        Evaluated<Def> evaluated = svc.evaluate(definition, ctx);
+
+        // there seems to be a bug in the reporting module that doesn't set these
+        if (evaluated.getDefinition().getName() == null)
+            evaluated.getDefinition().setName(definition.getName());
+        if (evaluated.getDefinition().getDescription() == null)
+            evaluated.getDefinition().setDescription(definition.getDescription());
+        if (evaluated.getDefinition().getUuid() == null)
+            evaluated.getDefinition().setUuid(definition.getUuid());
+
+        return evaluated;
     }
 }

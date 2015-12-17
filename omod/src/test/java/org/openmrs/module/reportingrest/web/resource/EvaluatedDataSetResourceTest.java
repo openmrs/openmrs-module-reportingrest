@@ -102,6 +102,21 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
     }
 
     @Test
+    public void testEvaluatingDsdFromSerializedXml() throws Exception {
+        String xml = "<org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition>" +
+                "<parameters/>" +
+                "<sqlQuery>select patient_id from patient where year(date_created) = 2006</sqlQuery>" +
+                "</org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition>";
+        SimpleObject response = (SimpleObject) getResource().create(new SimpleObject().add("serializedXml", xml), buildRequestContext());
+
+        assertThat((String) path(response, "metadata", "columns", 0, "name"), is("PATIENT_ID"));
+        List rows = (List) response.get("rows");
+        assertThat(rows.size(), is(4));
+        Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
+        assertThat((Integer) firstRow.get("PATIENT_ID"), is(6));
+    }
+
+    @Test
     public void shouldConvertCohortIndicatorDataSet() throws Exception {
         {
             GenderCohortDefinition cd = new GenderCohortDefinition();

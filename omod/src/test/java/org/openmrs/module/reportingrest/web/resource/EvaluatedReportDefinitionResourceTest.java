@@ -2,29 +2,38 @@ package org.openmrs.module.reportingrest.web.resource;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.openmrs.api.SerializationService;
 import org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.evaluation.parameter.ParameterizableUtil;
 import org.openmrs.module.reporting.report.ReportData;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
+import org.openmrs.module.reporting.serializer.ReportingSerializer;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.ExpectedException;
 
+import java.util.Collection;
 import java.util.Date;
+
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  *
  */
+@SuppressWarnings("SpringJavaAutowiringInspection")
 public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResourceTest<EvaluatedReportDefinitionResource, ReportData> {
 
     public static final String UUID = "d9c79890-7ea9-41b1-a068-b5b99ca3d593";
 
-    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private ReportDefinitionService reportDefinitionService;
+
+    @Autowired
+    private SerializationService serializationService;
 
     @Before
     public void setUp() throws Exception {
@@ -55,7 +64,10 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
     @Test
     public void testEvaluating() throws Exception {
         SimpleObject response = (SimpleObject) getResource().retrieve(UUID, buildRequestContext("startDate", "1975-01-01", "endDate", "1976-12-31"));
-        System.out.println(toJson(response));
+        assertThat(((Collection) response.get("dataSets")).size(), is(2));
+        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(2));
+        assertThat((String) path(response, "dataSets", 0, "definition", "name"), is("Not everyone"));
+        assertThat((String) path(response, "dataSets", 1, "definition", "name"), is("For fun"));
     }
 
 	/**
@@ -66,4 +78,21 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
 	public void retrieve_shouldThrowObjectNotFoundExceptionIfResourceDoesNotExist() throws Exception {
 		getResource().retrieve("not-existing", buildRequestContext("startDate", "1975-01-01", "endDate", "1976-12-31"));
 	}
+
+    @Test
+    public void testEvaluatedSerializedXml() throws Exception {
+        ReportDefinition reportDefinition = reportDefinitionService.getDefinitionByUuid(UUID);
+        String xml = serializationService.getSerializer(ReportingSerializer.class).serialize(reportDefinition);
+        SimpleObject postBody = new SimpleObject()
+                .add("serializedXml", xml)
+                .add("startDate", "1975-01-01")
+                .add("endDate", "1976-12-31");
+
+        SimpleObject response = (SimpleObject) getResource().create(postBody, buildRequestContext());
+        assertThat(((Collection) response.get("dataSets")).size(), is(2));
+        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(2));
+        assertThat((String) path(response, "dataSets", 0, "definition", "name"), is("Not everyone"));
+        assertThat((String) path(response, "dataSets", 1, "definition", "name"), is("For fun"));
+    }
+
 }

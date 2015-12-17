@@ -13,7 +13,6 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
@@ -22,10 +21,12 @@ import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionService;
 import org.openmrs.module.reporting.definition.DefinitionContext;
-import org.openmrs.module.reporting.definition.library.AllDefinitionLibraries;
+import org.openmrs.module.reporting.evaluation.Evaluated;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
+import org.openmrs.module.reporting.serializer.ReportingSerializer;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
@@ -33,7 +34,7 @@ import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
-import org.openmrs.module.webservices.rest.web.response.ConversionException;
+import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.util.List;
@@ -53,60 +54,60 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 	@Override
 	public Object retrieve(String uuid, RequestContext requestContext)
 			throws ResponseException {
-		// evaluate the cohort
-		// the passed in uuid is the CohortDefinition uuid
-		EvaluatedCohort evaluatedCohort = getEvaluatedCohort(uuid, requestContext, StringUtils.EMPTY);
-		if (evaluatedCohort == null) {
-			return null;
+
+		try {
+			EvaluatedCohort evaluatedCohort = getEvaluatedCohort(uuid, requestContext, null);
+			return asRepresentation(evaluatedCohort, requestContext.getRepresentation());
 		}
-		return asRepresentation(evaluatedCohort, requestContext.getRepresentation());
+		catch (EvaluationException ex) {
+			throw new IllegalArgumentException(ex);
+		}
 	}
 
 	/**
-	 * Helper method used by this and the EvaluatedDataSetResource
+	 * We let the user POST the serialized XML version of a CohortDefinition to this resource in order to evaluate a
+	 * non-saved cohort definition on the fly.
+	 *
+	 * @param postBody
+	 * @param context
+	 * @return
+	 * @throws ResponseException
+     */
+	@Override
+	public Object create(SimpleObject postBody, RequestContext context) throws ResponseException {
+		Object serializedXml = postBody.get("serializedXml");
+		CohortDefinition definition;
+		try {
+			String xml = (String) serializedXml;
+			definition = Context.getSerializationService().getSerializer(ReportingSerializer.class).deserialize(xml, CohortDefinition.class);
+		} catch (Exception ex) {
+			throw new IllegalArgumentException("Invalid submitted cohort definition", ex);
+		}
+		EvaluationContext evalContext = getEvaluationContextWithParameters(definition, context, null, postBody);
+		try {
+			Evaluated<CohortDefinition> evaluatedCohort = evaluate(definition, DefinitionContext.getCohortDefinitionService(), evalContext);
+			return asRepresentation((EvaluatedCohort) evaluatedCohort, context.getRepresentation());
+		} catch (Exception ex) {
+			throw new IllegalArgumentException("Error evaluating cohort definition", ex);
+		}
+	}
+
+	/**
+	 * Helper method used by this and other resources that can have base cohorts (like EvaluatedDataSetResource)
 	 *
 	 * @param uuid CohortDefinition uuid
 	 * @param requestContext
 	 * @param parameterPrefix if non null, the parameter lookups are done with "parameterPrefix"+param
 	 * @return
 	 */
-	protected EvaluatedCohort getEvaluatedCohort(String uuid, RequestContext requestContext, String parameterPrefix) throws ConversionException {
-		if (parameterPrefix == null)
-			parameterPrefix = "";
-
-		AllDefinitionLibraries definitionLibraries = Context.getRegisteredComponents(AllDefinitionLibraries.class).get(0);
-		CohortDefinitionService cohortDefinitionService = DefinitionContext.getCohortDefinitionService();
-
-		CohortDefinition definition = definitionLibraries.getDefinition(CohortDefinition.class, uuid);
-
+	protected EvaluatedCohort getEvaluatedCohort(String uuid, RequestContext requestContext, String parameterPrefix) throws EvaluationException {
+		CohortDefinitionService definitionService = DefinitionContext.getCohortDefinitionService();
+		CohortDefinition definition = getDefinitionByUniqueId(definitionService, CohortDefinition.class, uuid);
 		if (definition == null) {
-			definition = cohortDefinitionService.getDefinitionByUuid(uuid);
+			throw new ObjectNotFoundException();
 		}
 
-		// fail early if the def doesn't exist
-		if (definition == null) {
-			return null;
-		}
-
-        EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext);
-
-		// actually do the evaluation
-		try {
-			EvaluatedCohort evaluated = cohortDefinitionService.evaluate(definition, evalContext);
-
-			// there seems to be a bug in the reporting module that doesn't set these
-			if (evaluated.getDefinition().getName() == null)
-				evaluated.getDefinition().setName(definition.getName());
-			if (evaluated.getDefinition().getDescription() == null)
-				evaluated.getDefinition().setDescription(definition.getDescription());
-			if (evaluated.getDefinition().getUuid() == null)
-				evaluated.getDefinition().setUuid(definition.getUuid());
-
-			return evaluated;
-		} catch (EvaluationException e) {
-			log.error("Unable to evaluate definition with uuid: " + uuid);
-			return null;
-		}
+		return (EvaluatedCohort) evaluate(definition, definitionService, getEvaluationContextWithParameters(definition, requestContext, parameterPrefix, null));
 	}
 
 	@Override

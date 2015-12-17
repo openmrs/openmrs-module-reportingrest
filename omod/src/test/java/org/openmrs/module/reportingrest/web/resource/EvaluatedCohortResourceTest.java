@@ -20,6 +20,7 @@ import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.GenderCohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.library.BuiltInCohortDefinitionLibrary;
 import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionService;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -65,10 +66,7 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 		// should include patients 2 and 6 from standard test dataset. their uuids are:
 		String[] expectedUuids = new String[] { "da7f524f-27ce-4bb2-86d6-6d1d05312bd5", "a7e04421-525f-442f-8138-05b619d16def" };
 
-		assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
-		for (String expected : expectedUuids) {
-			assertTrue(json.contains("/patient/" + expected));
-		}
+		assertCohortMembers(evaluated, json, expectedUuids);
 	}
 
 	@Test
@@ -82,14 +80,75 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 		// should include patients 2 and 6 from standard test dataset. their uuids are:
 		String[] expectedUuids = new String[] { "da7f524f-27ce-4bb2-86d6-6d1d05312bd5", "a7e04421-525f-442f-8138-05b619d16def" };
 
-		assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
-		for (String expected : expectedUuids) {
-			assertTrue(json.contains("/patient/" + expected));
-		}
+		assertCohortMembers(evaluated, json, expectedUuids);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void evaluateWithMissingParametersShouldThrowClientException() throws Exception {
 		Object evaluated = getResource().retrieve(BuiltInCohortDefinitionLibrary.PREFIX + "atLeastAgeOnDate", buildRequestContext());
 	}
+
+	@Test
+	public void testEvaluatingSerializedCohortDefintionWithNoParams() throws Exception {
+		StringBuilder xml = new StringBuilder();
+		xml.append("<org.openmrs.module.reporting.cohort.definition.GenderCohortDefinition>");
+		xml.append("  <maleIncluded>true</maleIncluded>");
+		xml.append("  <femaleIncluded>false</femaleIncluded>");
+		xml.append("  <unknownGenderIncluded>false</unknownGenderIncluded>");
+		xml.append("</org.openmrs.module.reporting.cohort.definition.GenderCohortDefinition>");
+		SimpleObject post = new SimpleObject();
+		post.put("serializedXml", xml.toString());
+
+		Object evaluated = getResource().create(post, buildRequestContext());
+		String json = toJson(evaluated);
+
+		// should include patients 2 and 6 from standard test dataset. their uuids are:
+		String[] expectedUuids = new String[] { "da7f524f-27ce-4bb2-86d6-6d1d05312bd5", "a7e04421-525f-442f-8138-05b619d16def" };
+
+		assertCohortMembers(evaluated, json, expectedUuids);
+	}
+
+	@Test
+	public void testEvaluatingSerializedCohortDefintionWithParams() throws Exception {
+		StringBuilder xml = new StringBuilder();
+		xml.append("<org.openmrs.module.reporting.cohort.definition.EncounterCohortDefinition>");
+		xml.append("  <parameters>\n" +
+				"    <org.openmrs.module.reporting.evaluation.parameter.Parameter id=\"387\">\n" +
+				"      <name>onOrAfter</name>\n" +
+				"      <label></label>\n" +
+				"      <type>java.util.Date</type>\n" +
+				"      <required>true</required>\n" +
+				"    </org.openmrs.module.reporting.evaluation.parameter.Parameter>\n" +
+				"    <org.openmrs.module.reporting.evaluation.parameter.Parameter id=\"388\">\n" +
+				"      <name>onOrBefore</name>\n" +
+				"      <label></label>\n" +
+				"      <type>java.util.Date</type>\n" +
+				"      <required>true</required>\n" +
+				"    </org.openmrs.module.reporting.evaluation.parameter.Parameter>\n" +
+				"  </parameters>");
+		xml.append("  <timeQualifier>ANY</timeQualifier>");
+		xml.append("  <returnInverse>false</returnInverse>");
+		xml.append("</org.openmrs.module.reporting.cohort.definition.EncounterCohortDefinition>");
+		SimpleObject post = new SimpleObject();
+		post.put("serializedXml", xml.toString());
+		post.put("onOrAfter", "2008-08-01");
+		post.put("onOrBefore", "2008-08-01");
+
+		Object evaluated = getResource().create(post, buildRequestContext());
+		String json = toJson(evaluated);
+		System.out.println(json);
+
+		// should include patient 7 from standard test dataset. their uuids are:
+		String[] expectedUuids = new String[] { "5946f880-b197-400b-9caa-a3c661d23041" };
+
+		assertCohortMembers(evaluated, json, expectedUuids);
+	}
+
+	private void assertCohortMembers(Object evaluated, String json, String[] expectedUuids) throws Exception {
+		assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
+		for (String expected : expectedUuids) {
+			assertTrue(json.contains("/patient/" + expected));
+		}
+	}
+
 }
