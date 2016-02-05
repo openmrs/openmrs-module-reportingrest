@@ -15,7 +15,6 @@
 
 	<bean id="deleteOldAdHocReportDefinitionsTask" class="org.openmrs.module.reporting.report.task.ReportingTimerTask">
 		<property name="taskClass" value="org.openmrs.module.reportingrest.adhoc.task.DeleteOldOldAdHocReportDefinitionsTask"/>
-		<property name="sessionFactory" ref="dbSessionFactory"/>
 	</bean>
 
 	<bean id="deleteOldAdHocReportDefinitionsTimerTask" class="org.springframework.scheduling.concurrent.ScheduledExecutorTask">
