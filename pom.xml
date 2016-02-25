@@ -102,6 +102,14 @@
 
         <dependency>
             <groupId>org.openmrs.module</groupId>
+            <artifactId>reporting-api-1.9</artifactId>
+            <version>${reportingVersion}</version>
+            <type>jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
             <artifactId>htmlwidgets-api</artifactId>
             <version>${htmlwidgetsVersion}</version>
             <type>jar</type>
