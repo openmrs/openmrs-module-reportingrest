@@ -25,7 +25,7 @@
     <properties>
         <openMRSVersion>1.9.9</openMRSVersion>
         <webservicesRestVersion>2.5</webservicesRestVersion>
-        <reportingVersion>0.9.9-SNAPSHOT</reportingVersion>
+        <reportingVersion>0.9.9</reportingVersion>
         <htmlwidgetsVersion>1.6.4</htmlwidgetsVersion>
         <serializationxstreamVersion>0.2.7</serializationxstreamVersion>
         <calculationVersion>1.0</calculationVersion>
@@ -34,18 +34,6 @@
 
     <dependencyManagement>
 		<dependencies>
-			<!--
-			Libraries from lib to add as dependencies with compile or runtime scope:
-			
-				
-			Find matching dependencies in maven central repository.
-			<dependency>
-				<groupId>org.other.library</groupId>
-				<artifactId>library-name</artifactId>
-				<version>library.version</version>
-				<scope>compile</scope>
-			</dependency>
-			-->
 			
 			<dependency>
 				<groupId>org.openmrs.api</groupId>
@@ -169,7 +157,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.3.2</version>
+                    <version>2.5</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <tagNameFormat>@{project.version}</tagNameFormat>
