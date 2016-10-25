@@ -25,19 +25,19 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 	}
 
 	@Override
-	public SimpleObject asRepresentation(DataSetMetaData metadata, Representation rep)
-			throws ConversionException {
+	public SimpleObject asRepresentation(DataSetMetaData metadata, Representation rep) throws ConversionException {
 		// ouput should be:
 		// { columns: [
-		//			{ name: "internalName", label: "Pretty Name", datatype: "java.lang.String" },
-		//			...
-		// 		] }
+		// { name: "internalName", label: "Pretty Name", datatype:
+		// "java.lang.String" },
+		// ...
+		// ] }
 		List<Map<String, String>> columns = new ArrayList<Map<String, String>>();
 		for (DataSetColumn column : metadata.getColumns()) {
 			Map<String, String> columnMap = new HashMap<String, String>();
 			columnMap.put("name", column.getName());
 			columnMap.put("label", column.getLabel());
-			columnMap.put("datatype", column.getDataType().getName());
+			columnMap.put("datatype", column.getDataType() != null ? column.getDataType().getName() : null);
 			columns.add(columnMap);
 		}
 
@@ -45,8 +45,7 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 	}
 
 	@Override
-	public Object getProperty(DataSetMetaData metadata, String propertyName)
-			throws ConversionException {
+	public Object getProperty(DataSetMetaData metadata, String propertyName) throws ConversionException {
 		try {
 			return PropertyUtils.getProperty(metadata, propertyName);
 		} catch (IllegalAccessException e) {
@@ -56,26 +55,27 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		}
-		
+
 		// fail
 		return null;
 	}
 
 	/**
-     * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#newInstance(java.lang.String)
-     */
-    @Override
-    public DataSetMetaData newInstance(String arg0) {
-	    // not used
-    	return null;
-    }
+	 * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#newInstance(java.lang.String)
+	 */
+	@Override
+	public DataSetMetaData newInstance(String arg0) {
+		// not used
+		return null;
+	}
 
 	/**
-     * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#setProperty(java.lang.Object, java.lang.String, java.lang.Object)
-     */
-    @Override
-    public void setProperty(Object instance, String propertyName, Object value) throws ConversionException {
-    	// not used
-    }
+	 * @see org.openmrs.module.webservices.rest.web.resource.api.Converter#setProperty(java.lang.Object,
+	 *      java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public void setProperty(Object instance, String propertyName, Object value) throws ConversionException {
+		// not used
+	}
 
 }
