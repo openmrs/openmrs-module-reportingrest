@@ -24,6 +24,8 @@ import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.Evaluated;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.EvaluationException;
+import org.openmrs.module.reporting.evaluation.querybuilder.HqlQueryBuilder;
+import org.openmrs.module.reporting.evaluation.service.EvaluationService;
 import org.openmrs.module.reporting.serializer.ReportingSerializer;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.SimpleObject;
@@ -135,7 +137,10 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 	 */
 	@PropertyGetter("members")
 	public List<Patient> getMembers(EvaluatedCohort evaluatedCohort) {
-		return Context.getPatientSetService().getPatients(evaluatedCohort.getMemberIds());
+        HqlQueryBuilder qb = new HqlQueryBuilder();
+        qb.select("p").from(Patient.class, "p");
+        qb.whereIdIn("p.patientId", evaluatedCohort.getMemberIds());
+        return Context.getService(EvaluationService.class).evaluateToList(qb, Patient.class, new EvaluationContext());
 	}
 
 }
