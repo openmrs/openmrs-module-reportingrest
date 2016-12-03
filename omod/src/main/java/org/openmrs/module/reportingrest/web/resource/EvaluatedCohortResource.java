@@ -39,6 +39,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -130,17 +131,24 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 
 	/**
 	 * In core and the reporting module, a cohort is a list of members ids, but for web services
-	 * we should expose these as REFs to the relevant patients.
-	 * There's a performance penalty for this, so we should consider changing this to include a
-	 * URI that lets you look up the patient, but is based on patientId, so we don't have to hit
-	 * the database.
+	 * we should expose these as REFs of the relevant patients (because the patient_id is useless for REST).
+	 * To avoid a performance penalty for large cohorts, we only query the id and uuid fields, which are enough for an
+	 * anemic REF representation of the patient, with a blank 'display' property.
 	 */
 	@PropertyGetter("members")
 	public List<Patient> getMembers(EvaluatedCohort evaluatedCohort) {
+		// it is impractical to write a test case that verifies this produces an efficient hibernate query, but I manually
+		// verified it with hibernate.show_sql=true
         HqlQueryBuilder qb = new HqlQueryBuilder();
-        qb.select("p").from(Patient.class, "p");
+        qb.select("patientId", "uuid").from(Patient.class, "p");
         qb.whereIdIn("p.patientId", evaluatedCohort.getMemberIds());
-        return Context.getService(EvaluationService.class).evaluateToList(qb, Patient.class, new EvaluationContext());
+		List<Patient> ret = new ArrayList<Patient>();
+		for (Object[] row : Context.getService(EvaluationService.class).evaluateToList(qb, new EvaluationContext())) {
+			Patient pt = new Patient((Integer) row[0]);
+			pt.setUuid((String) row[1]);
+			ret.add(pt);
+		}
+		return ret;
 	}
 
 }
