@@ -34,6 +34,8 @@ import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
+import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
+import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
@@ -124,8 +126,18 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 			description.addProperty("definition");
 			description.addProperty("members", Representation.REF); // @PropertyGetter method below
 			description.addSelfLink();
-		}
-
+		}else if(rep instanceof FullRepresentation){
+            description = new DelegatingResourceDescription();
+            description.addProperty("uuid");
+            description.addProperty("definition");
+            description.addProperty("members", Representation.REF); // @PropertyGetter method below
+            description.addSelfLink();
+        }else if(rep instanceof RefRepresentation){
+            description = new DelegatingResourceDescription();
+            description.addProperty("uuid");
+            description.addProperty("definition");
+            description.addSelfLink();
+        }
 		return description;
 	}
 
