@@ -3,7 +3,7 @@
 
 	<groupId>org.openmrs.module</groupId>
 	<artifactId>reportingrest</artifactId>
-	<version>1.7-SNAPSHOT</version>
+	<version>1.7.0</version>
 	<packaging>pom</packaging>
 	<name>Reporting REST</name>
 	<description>Parent project for reportingrest</description>
@@ -14,7 +14,7 @@
         <connection>scm:git:git@github.com:openmrs/openmrs-module-reportingrest.git</connection>
         <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-reportingrest.git</developerConnection>
         <url>scm:git:git@github.com:openmrs/openmrs-module-reportingrest.git</url>
-        <tag>HEAD</tag>
+        <tag>1.7.0</tag>
     </scm>
 
 	<modules>
