@@ -13,10 +13,15 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
+import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -25,16 +30,19 @@ import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
+import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@link Resource} for {@link ReportRequest}s, supporting standard CRUD operations
  */
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/reportRequest",
-        supportedClass = ReportRequest.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*"})
+        supportedClass = ReportRequest.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
 public class ReportRequestResource extends DelegatingCrudResource<ReportRequest> {
 
 	/**
@@ -52,7 +60,21 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	public ReportRequest getByUniqueId(String uuid) {
 		return getService().getReportRequestByUuid(uuid);
 	}
-
+	
+	@Override
+	protected PageableResult doSearch(RequestContext context) {
+		String reportDefinitionParam = context.getParameter("reportDefinition");
+		if (StringUtils.isEmpty(reportDefinitionParam)) {
+			throw new IllegalArgumentException("reportDefinition is required");
+		}
+		ReportDefinition reportDefinition = DefinitionContext.getDefinitionByUuid(ReportDefinition.class, reportDefinitionParam);
+		if (reportDefinition == null) {
+			throw new NullPointerException("Cannot find reportDefinition=" + reportDefinitionParam);
+		}
+		List<ReportRequest> reportRequests = getService().getReportRequests(reportDefinition, null, null);
+		return new NeedsPaging<ReportRequest>(reportRequests, context);
+	}
+	
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
