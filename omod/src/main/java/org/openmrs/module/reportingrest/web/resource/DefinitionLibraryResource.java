@@ -18,6 +18,7 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.data.encounter.definition.EncounterDataDefinition;
 import org.openmrs.module.reporting.data.patient.definition.PatientDataDefinition;
+import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.definition.library.AllDefinitionLibraries;
 import org.openmrs.module.reporting.definition.library.LibraryDefinitionSummary;
 import org.openmrs.module.reporting.evaluation.Definition;
@@ -42,13 +43,15 @@ import java.util.Map;
 /**
  *
  */
-@Resource(name = RestConstants.VERSION_1 + "/reportingrest/definitionlibrary", supportedClass = Definition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*"})
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/definitionlibrary",
+        supportedClass = Definition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
 public class DefinitionLibraryResource implements CrudResource, Searchable {
 
     static Map<String, Class<? extends Definition>> types;
     static {
         types = new HashMap<String, Class<? extends Definition>>();
         types.put("cohort", CohortDefinition.class);
+        types.put("dataSet", DataSetDefinition.class);
         types.put("encounterQuery", EncounterQuery.class);
         types.put("patientData", PatientDataDefinition.class);
         types.put("encounterData", EncounterDataDefinition.class);
