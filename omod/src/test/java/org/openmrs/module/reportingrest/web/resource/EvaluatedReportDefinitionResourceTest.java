@@ -62,8 +62,20 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
     }
 
     @Test
-    public void testEvaluating() throws Exception {
+    public void testEvaluatingUsingGet() throws Exception {
         SimpleObject response = (SimpleObject) getResource().retrieve(UUID, buildRequestContext("startDate", "1975-01-01", "endDate", "1976-12-31"));
+        assertThat(((Collection) response.get("dataSets")).size(), is(2));
+        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(2));
+        assertThat((String) path(response, "dataSets", 0, "definition", "name"), is("Not everyone"));
+        assertThat((String) path(response, "dataSets", 1, "definition", "name"), is("For fun"));
+    }
+    
+    @Test
+    public void testEvaluatingUsingPost() throws Exception {
+        SimpleObject postBody = new SimpleObject()
+                .add("startDate", "1975-01-01")
+                .add("endDate", "1976-12-31");
+        SimpleObject response = (SimpleObject) getResource().update(UUID, postBody, buildRequestContext());
         assertThat(((Collection) response.get("dataSets")).size(), is(2));
         assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(2));
         assertThat((String) path(response, "dataSets", 0, "definition", "name"), is("Not everyone"));

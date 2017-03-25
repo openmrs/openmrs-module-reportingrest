@@ -13,6 +13,9 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
@@ -39,14 +42,11 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * {@link Resource} for evaluating {@link CohortDefinition}s
  */
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/cohort",
-        supportedClass = EvaluatedCohort.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*"})
+        supportedClass = EvaluatedCohort.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
 public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> {
 
 	private static Log log = LogFactory.getLog(EvaluatedCohortResource.class);
@@ -66,7 +66,34 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 			throw new IllegalArgumentException(ex);
 		}
 	}
-
+	
+	/**
+	 * We let the user POST to an existing cohort definition in order to specify more complex parameters than they could
+	 * do in a GET
+	 * @param uniqueId
+	 * @param postBody
+	 * @param context
+	 * @return
+	 * @throws ResponseException
+	 */
+	@Override
+	public Object update(String uniqueId, SimpleObject postBody, RequestContext context) throws ResponseException {
+		CohortDefinitionService definitionService = DefinitionContext.getCohortDefinitionService();
+		CohortDefinition definition = getDefinitionByUniqueId(definitionService, CohortDefinition.class, uniqueId);
+		if (definition == null) {
+			throw new ObjectNotFoundException();
+		}
+		
+		EvaluationContext evalContext = getEvaluationContextWithParameters(definition, context, null, postBody);
+		
+		try {
+			Evaluated<CohortDefinition> evaluatedCohort = evaluate(definition, DefinitionContext.getCohortDefinitionService(), evalContext);
+			return asRepresentation((EvaluatedCohort) evaluatedCohort, context.getRepresentation());
+		} catch (Exception ex) {
+			throw new IllegalArgumentException("Error evaluating cohort definition", ex);
+		}
+	}
+	
 	/**
 	 * We let the user POST the serialized XML version of a CohortDefinition to this resource in order to evaluate a
 	 * non-saved cohort definition on the fly.

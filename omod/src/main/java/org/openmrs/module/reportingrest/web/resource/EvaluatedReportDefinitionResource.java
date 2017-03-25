@@ -32,7 +32,8 @@ import java.util.List;
 /**
  *
  */
-@Resource(name = RestConstants.VERSION_1 + "/reportingrest/reportdata", supportedClass = ReportData.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*"})
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/reportdata",
+        supportedClass = ReportData.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
 public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportData> {
 
     private Log log = LogFactory.getLog(getClass());
@@ -72,9 +73,38 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
 	    }
 
         EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext, null, null);
+        evaluateAndSetBaseCohort(requestContext, evalContext);
 
+        try {
+            ReportData reportData = (ReportData) evaluate(definition, reportDefinitionService, evalContext);
+            return asRepresentation(reportData, requestContext.getRepresentation());
+        } catch (EvaluationException e) {
+            throw new RuntimeException("Failed to evaluate report definition", e);
+        }
+    }
+    
+    @Override
+    public Object update(String uniqueId, SimpleObject postBody, RequestContext requestContext) throws ResponseException {
+        ReportDefinitionService reportDefinitionService = DefinitionContext.getReportDefinitionService();
+        ReportDefinition definition = getDefinitionByUniqueId(reportDefinitionService, ReportDefinition.class, uniqueId);
+        if (definition == null) {
+            throw new ObjectNotFoundException();
+        }
+    
+        EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext, null, postBody);
+        evaluateAndSetBaseCohort(requestContext, evalContext);
+    
+        try {
+            ReportData reportData = (ReportData) evaluate(definition, reportDefinitionService, evalContext);
+            return asRepresentation(reportData, requestContext.getRepresentation());
+        } catch (EvaluationException e) {
+            throw new RuntimeException("Failed to evaluate report definition", e);
+        }
+    }
+    
+    private void evaluateAndSetBaseCohort(RequestContext requestContext, EvaluationContext evalContext) {
         HttpServletRequest httpRequest = requestContext.getRequest();
-
+        
         // if there is a "cohort" parameter, use that to look for a CohortDefinition to run against, otherwise all patients
         String cohortUuid = httpRequest.getParameter("cohort");
         if (StringUtils.hasLength(cohortUuid)) {
@@ -85,15 +115,8 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
                 throw new IllegalStateException("Failed to evaluated cohort", ex);
             }
         }
-
-        try {
-            ReportData reportData = (ReportData) evaluate(definition, reportDefinitionService, evalContext);
-            return asRepresentation(reportData, requestContext.getRepresentation());
-        } catch (EvaluationException e) {
-            throw new RuntimeException("Failed to evaluate report definition", e);
-        }
     }
-
+    
     /**
      * We let the user POST the serialized XML version of a Definition to this resource in order to evaluate a non-saved
      * definition on the fly.

@@ -87,6 +87,23 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 	public void evaluateWithMissingParametersShouldThrowClientException() throws Exception {
 		Object evaluated = getResource().retrieve(BuiltInCohortDefinitionLibrary.PREFIX + "atLeastAgeOnDate", buildRequestContext());
 	}
+	
+	@Test
+	public void testEvaluateBuiltInDefinitionWithParametersUsingPost() throws Exception {
+		SimpleObject postBody = new SimpleObject()
+				.add("effectiveDate", "2017-01-01")
+				.add("maxAge", "20");
+		
+		Object evaluated = getResource().update(BuiltInCohortDefinitionLibrary.PREFIX + "upToAgeOnDate", postBody, buildRequestContext());
+		String json = toJson(evaluated);
+		
+		assertThat((String) path(evaluated, "definition", "uuid"), is("reporting.library.cohortDefinition.builtIn.upToAgeOnDate"));
+		
+		// should include patient 6 from standard test dataset. their uuids are:
+		String[] expectedUuids = new String[] { "a7e04421-525f-442f-8138-05b619d16def" };
+		
+		assertCohortMembers(evaluated, json, expectedUuids);
+	}
 
 	@Test
 	public void testEvaluatingSerializedCohortDefintionWithNoParams() throws Exception {

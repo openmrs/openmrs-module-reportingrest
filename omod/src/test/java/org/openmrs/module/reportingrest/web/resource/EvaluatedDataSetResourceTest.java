@@ -51,7 +51,7 @@ import static org.junit.Assert.assertTrue;
  *
  */
 public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<EvaluatedDataSetResource, DataSet> {
-
+    
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     DataSetDefinitionService dataSetDefinitionService;
@@ -63,7 +63,9 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     LocationService locationService;
-
+    
+    public static final String UUID_FOR_PARAMS_DSD = "uuid-for-params-dsd";
+    
     @Before
     public void setUp() throws Exception {
         executeDataSet("DataSetDefinitionTest.xml");
@@ -80,25 +82,43 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
     }
 
     @Test
-    public void testEvaluatingDsdWithParameters() throws Exception {
-        String uuid = "uuid-for-params-dsd";
+    public void testEvaluatingDsdWithParametersUsingGet() throws Exception {
+        saveDsdWithParams();
 
+        RequestContext context = buildRequestContext("param1", "these are words, that we won't use", "param2", "2000-11-01");
+        SimpleObject response = (SimpleObject) getResource().retrieve(UUID_FOR_PARAMS_DSD, context);
+
+        List rows = (List) response.get("rows");
+        assertThat(rows.size(), is(1));
+        Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
+        assertThat((Integer) firstRow.get("PERSON_ID"), is(6));
+    }
+    
+    @Test
+    public void testEvaluatingDsdWithParametersUsingPost() throws Exception {
+        saveDsdWithParams();
+        
+        RequestContext context = buildRequestContext();
+        SimpleObject postBody = new SimpleObject()
+                .add("param1", "these are words, that we won't use")
+                .add("param2", "2000-11-01");
+        SimpleObject response = (SimpleObject) getResource().update(UUID_FOR_PARAMS_DSD, postBody, context);
+        
+        List rows = (List) response.get("rows");
+        assertThat(rows.size(), is(1));
+        Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
+        assertThat((Integer) firstRow.get("PERSON_ID"), is(6));
+    }
+    
+    private void saveDsdWithParams() {
         SqlDataSetDefinition dsd = new SqlDataSetDefinition();
         dsd.setName("Not everyone");
         dsd.setDescription("via SQL");
         dsd.setSqlQuery("select person_id, birthdate from person where voided = 0 and birthdate > :param2");
         dsd.addParameter(new Parameter("param1", "param 1", String.class));
         dsd.addParameter(new Parameter("param2", "param 2", Date.class));
-        dsd.setUuid(uuid);
+        dsd.setUuid(UUID_FOR_PARAMS_DSD);
         dataSetDefinitionService.saveDefinition(dsd);
-
-        RequestContext context = buildRequestContext("param1", "these are words, that we won't use", "param2", "2000-11-01");
-        SimpleObject response = (SimpleObject) getResource().retrieve(uuid, context);
-
-        List rows = (List) response.get("rows");
-        assertThat(rows.size(), is(1));
-        Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
-        assertThat((Integer) firstRow.get("PERSON_ID"), is(6));
     }
 
     @Test

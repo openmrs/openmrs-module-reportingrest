@@ -53,7 +53,8 @@ import java.util.Map;
 /**
  * {@link Resource} for evaluating {@link DataSetDefinition}s
  */
-@Resource(name = RestConstants.VERSION_1 + "/reportingrest/dataSet", supportedClass = DataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*"})
+@Resource(name = RestConstants.VERSION_1 + "/reportingrest/dataSet",
+		supportedClass = DataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
 public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 	
 	private static Log log = LogFactory.getLog(EvaluatedDataSetResource.class);
@@ -69,19 +70,7 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 		}
 
 		EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext, null, null);
-
-        HttpServletRequest httpRequest = requestContext.getRequest();
-
-        // if there is a "cohort" parameter, use that to look for a CohortDefinition to run against, otherwise all patients
-        String cohortUuid = httpRequest.getParameter("cohort");
-        if (StringUtils.hasLength(cohortUuid)) {
-			try {
-				EvaluatedCohort cohort = new EvaluatedCohortResource().getEvaluatedCohort(cohortUuid, requestContext, "cohort.");
-				evalContext.setBaseCohort(cohort);
-			} catch (EvaluationException ex) {
-				throw new IllegalStateException("Failed to evaluated cohort", ex);
-			}
-        }
+		evaluateAndSetBaseCohort(requestContext, evalContext);
 
 		try {
 			DataSet dataSet = (DataSet) evaluate(definition, dataSetDefinitionService, evalContext);
@@ -90,7 +79,55 @@ public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 			throw new IllegalArgumentException(ex);
 		}
 	}
-
+	
+	/**
+	 * Allow POSTing to an existing dsd, in case the user needs to specify more complex parameter values than can be done
+	 * in a GET.
+	 * @param uniqueId
+	 * @param postBody
+	 * @param requestContext
+	 * @return
+	 * @throws ResponseException
+	 */
+	@Override
+	public Object update(String uniqueId, SimpleObject postBody, RequestContext requestContext) throws ResponseException {
+		DataSetDefinitionService dataSetDefinitionService = DefinitionContext.getDataSetDefinitionService();
+		DataSetDefinition definition = getDefinitionByUniqueId(dataSetDefinitionService, DataSetDefinition.class, uniqueId);
+		if (definition == null) {
+			throw new ObjectNotFoundException();
+		}
+		
+		EvaluationContext evalContext = getEvaluationContextWithParameters(definition, requestContext, null, postBody);
+		evaluateAndSetBaseCohort(requestContext, evalContext);
+		
+		try {
+			DataSet dataSet = (DataSet) evaluate(definition, dataSetDefinitionService, evalContext);
+			return asRepresentation(dataSet, requestContext.getRepresentation());
+		} catch (EvaluationException ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	
+	/**
+	 * If there is a "cohort" parameter in the request, use that to look for a CohortDefinition to run against, otherwise
+	 * we'll use all patients
+	 * @param requestContext
+	 * @param evalContext
+	 */
+	private void evaluateAndSetBaseCohort(RequestContext requestContext, EvaluationContext evalContext) {
+		HttpServletRequest httpRequest = requestContext.getRequest();
+		
+		String cohortUniqueId = httpRequest.getParameter("cohort");
+		if (StringUtils.hasLength(cohortUniqueId)) {
+			try {
+				EvaluatedCohort cohort = new EvaluatedCohortResource().getEvaluatedCohort(cohortUniqueId, requestContext, "cohort.");
+				evalContext.setBaseCohort(cohort);
+			} catch (EvaluationException ex) {
+				throw new IllegalStateException("Failed to evaluated cohort", ex);
+			}
+		}
+	}
+	
 	/**
 	 * We let the user POST the serialized XML version of a Definition to this resource in order to evaluate a non-saved
 	 * definition on the fly.
