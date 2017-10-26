@@ -61,4 +61,16 @@ public class SimpleIdSet implements IdSet {
         return new SimpleIdSet(new HashSet<Integer>(memberIds));
     }
 
+    @Override
+    public void retainAll(IdSet idSet) { memberIds.retainAll(idSet.getMemberIds()); }
+
+    @Override
+    public void removeAll(IdSet idSet) { memberIds.removeAll(idSet.getMemberIds()); }
+
+    @Override
+    public void addAll(IdSet idSet) { memberIds.addAll(idSet.getMemberIds()); }
+
+    @Override
+    public void setMemberIds(Set set) { memberIds = set; }
+
 }
