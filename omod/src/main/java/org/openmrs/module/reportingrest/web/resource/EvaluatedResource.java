@@ -19,13 +19,13 @@ import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Common functionality for resources that evaluate definitions
@@ -105,29 +105,36 @@ public abstract class EvaluatedResource<T extends Evaluated> extends DelegatingC
             Object convertedValue = null;
 
             if (param.getCollectionType() != null) {
-                Collection collection;
-                if (Set.class.isAssignableFrom(param.getCollectionType())) {
-                    collection = new LinkedHashSet();
-                } else if (List.class.isAssignableFrom(param.getCollectionType())) {
-                    collection = new ArrayList();
-                } else {
-                    throw new IllegalStateException("Cannot handle collection type: " + param.getCollectionType());
-                }
 
-                if (request.getParameterValues(paramName) != null) {
-                    for (String httpParamValue : request.getParameterValues(paramName)) {
-                        collection.add(ConversionUtil.convert(httpParamValue, param.getType()));
-                    }
-                } else {
-                    // if there were no request params, look at the postBody
-                    Object posted = postBody.get(paramName);
-                    if (posted != null) {
-                        if (posted instanceof Collection) {
-                            for (Object item : ((Collection) posted)) {
-                                collection.add(ConversionUtil.convert(item, param.getType()));
+                // we don't create collection until we confirm we have a parameter value, see https://issues.openmrs.org/browse/REPORT-835
+                Collection collection = null;
+
+                if (request.getParameterMap().containsKey(paramName)) {
+                    collection = createCollection(param.getCollectionType());
+                    if (request.getParameterValues(paramName) != null) {
+                        for (String httpParamValue : request.getParameterValues(paramName)) {
+                            if (httpParamValue != null) {
+                                collection.add(ConversionUtil.convert(httpParamValue, param.getType()));
                             }
-                        } else {
-                            throw new IllegalArgumentException("Parameter " + paramName + " in POST body should be an array");
+                        }
+                    }
+                }
+                else {
+                    // if there were no request params, look at the postBody
+                    if (postBody != null && postBody.containsKey(paramName)) {
+                        collection = createCollection(param.getCollectionType());
+                        Object posted = postBody.get(paramName);
+                        if (posted != null) {
+                            if (posted instanceof Collection) {
+                                for (Object item : ((Collection) posted)) {
+                                    if (item != null) {
+                                        collection.add(ConversionUtil.convert(item, param.getType()));
+                                    }
+                                }
+                            }
+                            else {
+                                throw new IllegalArgumentException("Parameter " + paramName + " in POST body should be an array");
+                            }
                         }
                     }
                 }
@@ -149,6 +156,16 @@ public abstract class EvaluatedResource<T extends Evaluated> extends DelegatingC
             evalContext.addParameterValue(paramName, convertedValue);
         }
         return evalContext;
+    }
+
+    private Collection createCollection(Class collectionType) {
+        if (Set.class.isAssignableFrom(collectionType)) {
+            return new LinkedHashSet();
+        } else if (List.class.isAssignableFrom(collectionType)) {
+            return new ArrayList();
+        } else {
+            throw new IllegalStateException("Cannot handle collection type: " + collectionType);
+        }
     }
 
     protected <Def extends Definition> Def getDefinitionByUniqueId(DefinitionService<Def> svc, Class<Def> clazz, String uniqueId) {

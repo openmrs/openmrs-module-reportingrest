@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -78,6 +79,18 @@ public class EvaluatedResourceTest extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
+    public void testGetEvaluationContextWithParameters_emptyCollectionParamFromRequest() throws Exception {
+        String etUuid = "61ae96f4-6afe-4351-b6f8-cd4fc383cce1";
+        EncounterCohortDefinition definition = new EncounterCohortDefinition();
+        definition.addParameter(new Parameter("encounterTypeList", "Encounter Types", EncounterType.class, List.class, null));
+        EvaluationContext evalContext = resource.getEvaluationContextWithParameters(definition,
+                buildRequestContext("encounterTypeList", null), null, null);
+        assertThat(evalContext.getParameterValues().size(), is(1));
+        assertThat(((List<EncounterType>) evalContext.getParameterValue("encounterTypeList")).size(),
+                is(0));
+    }
+
+    @Test
     public void testGetEvaluationContextWithParameters_collectionParamFromBody() throws Exception {
         String etUuid = "61ae96f4-6afe-4351-b6f8-cd4fc383cce1";
         EncounterCohortDefinition definition = new EncounterCohortDefinition();
@@ -89,10 +102,36 @@ public class EvaluatedResourceTest extends BaseModuleWebContextSensitiveTest {
                 containsInAnyOrder(Context.getEncounterService().getEncounterTypeByUuid(etUuid)));
     }
 
+    @Test
+    public void testGetEvaluationContextWithParameters_emptyCollectionParamFromBody() throws Exception {
+        String etUuid = "61ae96f4-6afe-4351-b6f8-cd4fc383cce1";
+        EncounterCohortDefinition definition = new EncounterCohortDefinition();
+        definition.addParameter(new Parameter("encounterTypeList", "Encounter Types", EncounterType.class, List.class, null));
+        SimpleObject postBody = new SimpleObject().add("encounterTypeList", null);
+        EvaluationContext evalContext = resource.getEvaluationContextWithParameters(definition, buildRequestContext(), null, postBody);
+        assertThat(evalContext.getParameterValues().size(), is(1));
+        assertThat(((List<EncounterType>) evalContext.getParameterValue("encounterTypeList")).size(),
+                is(0));
+    }
+
+
+    @Test
+    public void testGetEvaluationContextWithParameters_missingCollectionParam() throws Exception {
+        String etUuid = "61ae96f4-6afe-4351-b6f8-cd4fc383cce1";
+        EncounterCohortDefinition definition = new EncounterCohortDefinition();
+        definition.addParameter(new Parameter("encounterTypeList", "Encounter Types", EncounterType.class, List.class, null, null, false));;
+        EvaluationContext evalContext = resource.getEvaluationContextWithParameters(definition,
+                buildRequestContext(null), null, null);
+        assertThat(evalContext.getParameterValues().size(), is(1));
+        assertNull((List<EncounterType>) evalContext.getParameterValue("encounterTypeList"));
+    }
+
     private RequestContext buildRequestContext(String... paramNamesAndValues) {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        for (int i = 0; i < paramNamesAndValues.length; i += 2) {
-            request.addParameter(paramNamesAndValues[i], paramNamesAndValues[i + 1]);
+        if (paramNamesAndValues != null) {
+            for (int i = 0; i < paramNamesAndValues.length; i += 2) {
+                request.addParameter(paramNamesAndValues[i], paramNamesAndValues[i + 1]);
+            }
         }
         RequestContext requestContext = mock(RequestContext.class);
         when(requestContext.getRequest()).thenReturn(request);
