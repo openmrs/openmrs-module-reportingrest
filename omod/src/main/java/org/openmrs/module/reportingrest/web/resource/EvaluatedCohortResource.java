@@ -13,9 +13,6 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
@@ -37,10 +34,14 @@ import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
+import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * {@link Resource} for evaluating {@link CohortDefinition}s
@@ -152,6 +153,13 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 			description.addProperty("members", Representation.REF); // @PropertyGetter method below
 			description.addSelfLink();
 		}
+		else if (rep instanceof RefRepresentation) {
+			description = new DelegatingResourceDescription();
+			description.addProperty("uuid"); // @PropertyGetter method below
+			description.addProperty("definition");
+			description.addProperty("count"); // @PropertyGetter method below
+			description.addSelfLink();
+		}
 
 		return description;
 	}
@@ -176,6 +184,11 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 			ret.add(pt);
 		}
 		return ret;
+	}
+
+	@PropertyGetter("count")
+	public Integer getCount(EvaluatedCohort evaluatedCohort) {
+		return evaluatedCohort.size();
 	}
 
 }
