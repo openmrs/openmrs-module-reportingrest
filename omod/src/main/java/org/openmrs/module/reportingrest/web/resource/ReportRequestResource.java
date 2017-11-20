@@ -13,17 +13,22 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.definition.DefinitionContext;
+import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
+import org.openmrs.module.reporting.report.renderer.CsvReportRenderer;
+import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
+import org.openmrs.module.webservices.rest.SimpleObject;
+import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -31,11 +36,10 @@ import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentat
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
-import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
-import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
-import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
-import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
+import org.openmrs.module.webservices.rest.web.resource.impl.*;
+import org.openmrs.module.webservices.rest.web.response.ConversionException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
+import org.openmrs.module.webservices.validation.ValidateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -74,7 +78,29 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		List<ReportRequest> reportRequests = getService().getReportRequests(reportDefinition, null, null);
 		return new NeedsPaging<ReportRequest>(reportRequests, context);
 	}
-	
+
+	@Override
+	public void setConvertedProperties(ReportRequest reportRequest, Map<String, Object> propertyMap, DelegatingResourceDescription description, boolean mustIncludeRequiredProperties) throws ConversionException {
+
+		String status = (String)propertyMap.get("status");
+		String priority = (String)propertyMap.get("priority");
+
+		reportRequest.setStatus(ReportRequest.Status.valueOf(status));
+		reportRequest.setPriority(ReportRequest.Priority.valueOf(priority));
+
+		Map<String, Object> paramValues = new HashMap();
+		paramValues.put("startDate", new Date());
+		paramValues.put("endDate", new Date());
+
+		ReportDefinition reportDefinition = (ReportDefinition)DefinitionContext.getDefinitionByUuid(ReportDefinition.class, (String)propertyMap.get("reportDefinition"));
+
+		reportRequest.setReportDefinition(new Mapped(reportDefinition, paramValues));
+		RenderingMode renderingMode = new RenderingMode(new CsvReportRenderer(), "csv", (String)null, Integer.valueOf(0));
+
+		reportRequest.setRenderingMode(renderingMode);
+	}
+
+
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
@@ -89,6 +115,13 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	@Override
 	protected void delete(ReportRequest reportRequest, String reason, RequestContext context) throws ResponseException {
 		purge(reportRequest, context);
+	}
+
+	@Override
+	public DelegatingResourceDescription getCreatableProperties() {
+		DelegatingResourceDescription delegatingResourceDescription = new DelegatingResourceDescription();
+		delegatingResourceDescription.addProperty("status");
+		return delegatingResourceDescription;
 	}
 
 	/**
