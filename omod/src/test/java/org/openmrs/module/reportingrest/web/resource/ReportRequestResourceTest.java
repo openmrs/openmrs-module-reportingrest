@@ -1,6 +1,8 @@
 package org.openmrs.module.reportingrest.web.resource;
 
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.Date;
@@ -18,6 +20,7 @@ import org.openmrs.module.reporting.report.definition.service.ReportDefinitionSe
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.api.RestService;
+import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -60,7 +63,39 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 	private ReportRequestResource getResource() {
 		return (ReportRequestResource) Context.getService(RestService.class).getResourceBySupportedClass(ReportRequest.class);
 	}
-	
+
+    @Test
+    public void testCreate() throws Exception {
+        String reportDefinitionJson = "{"
+                + "\"parameterizable\":{"
+                + "   \"uuid\":\"" + REPORT_DEFINITION_UUID + "\""
+                + "},"
+                + "\"parameterMappings\":{"
+                + "   \"endDate\":\"2017-01-31\","
+                + "   \"startDate\":\"2017-01-01\"}"
+                + "}";
+
+
+        String reportRequestJson = "{\n" +
+                "  \"status\": \"REQUESTED\",\n" +
+                "  \"priority\": \"NORMAL\",\n" +
+                "  \"reportDefinition\":" + reportDefinitionJson + "," +
+                "  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\"\n" +
+                "}";
+
+        SimpleObject properties = SimpleObject.parseJson(reportRequestJson);
+
+        RequestContext context = new RequestContext();
+        context.setRepresentation(Representation.DEFAULT);
+        SimpleObject response = (SimpleObject) getResource().create(properties, context);
+        assertNotNull(response.get("uuid"));
+        assertEquals(response.get("status"), ReportRequest.Status.REQUESTED);
+        assertEquals(response.get("priority"), ReportRequest.Priority.NORMAL);
+        SimpleObject resultObject = (SimpleObject) response.get("renderingMode");
+        String rendererType = (String) resultObject.get("rendererType");
+        assertEquals(rendererType, "org.openmrs.module.reporting.report.renderer.CsvReportRenderer");
+    }
+
 	@Test
 	public void testGetOne() throws Exception {
 		ReportRequest request = getResource().getByUniqueId(REPORT_REQUEST_UUID);
