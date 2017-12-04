@@ -13,10 +13,10 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import org.openmrs.module.reporting.report.ReportRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.definition.DefinitionContext;
-import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
@@ -27,10 +27,7 @@ import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentat
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
-import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
-import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
-import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
-import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
+import org.openmrs.module.webservices.rest.web.resource.impl.*;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.util.List;
@@ -72,6 +69,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		return new NeedsPaging<ReportRequest>(reportRequests, context);
 	}
 
+
 //	public void setConvertedProperties(ReportRequest reportRequest, Map<String, Object> propertyMap, DelegatingResourceDescription description, boolean mustIncludeRequiredProperties) throws ConversionException {
 //
 //		String status = (String) propertyMap.get("status");
@@ -103,7 +101,6 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 //		RenderingMode renderMode = new RenderingMode(renderer, (String) renderingMode.get("label"), (String) renderingMode.get("argument"), (Integer) renderingMode.get("sortWeight"));
 //		return renderMode;
 //	}
-
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
@@ -125,6 +122,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	public DelegatingResourceDescription getCreatableProperties() {
 		DelegatingResourceDescription delegatingResourceDescription = new DelegatingResourceDescription();
 		delegatingResourceDescription.addProperty("status");
+
 		delegatingResourceDescription.addProperty("reportDefinition");
 		delegatingResourceDescription.addProperty("renderingMode");
 		delegatingResourceDescription.addProperty("priority");
