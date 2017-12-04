@@ -13,15 +13,11 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
-import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -36,7 +32,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResou
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * {@link Resource} for {@link ReportRequest}s, supporting standard CRUD operations
@@ -74,12 +71,45 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		List<ReportRequest> reportRequests = getService().getReportRequests(reportDefinition, null, null);
 		return new NeedsPaging<ReportRequest>(reportRequests, context);
 	}
-	
+
+//	public void setConvertedProperties(ReportRequest reportRequest, Map<String, Object> propertyMap, DelegatingResourceDescription description, boolean mustIncludeRequiredProperties) throws ConversionException {
+//
+//		String status = (String) propertyMap.get("status");
+//		String priority = (String) propertyMap.get("priority");
+//
+//		reportRequest.setStatus(ReportRequest.Status.valueOf(status));
+//		reportRequest.setPriority(ReportRequest.Priority.valueOf(priority));
+//
+//		ReportDefinition reportDefinition = DefinitionContext.getDefinitionByUuid(ReportDefinition.class, (String) propertyMap.get("reportDefinition"));
+//		reportRequest.setReportDefinition(new Mapped<ReportDefinition>(reportDefinition, (Map<String, Object>) propertyMap.get("reportParams")));
+//
+//
+//
+//		Map<String, Object> renderingMode = (Map<String, Object>) propertyMap.get("renderingMode");
+//		reportRequest.setRenderingMode(getRenderingMode(renderingMode));
+//	}
+//
+//	private RenderingMode getRenderingMode(Map<String, Object> renderingMode) {
+//
+//		ReportRenderer renderer = null;
+//		if (renderingMode.containsKey("rendererType")) {
+//			String renderType = (String) renderingMode.get("rendererType");
+//			try {
+//				renderer = (ReportRenderer) Class.forName(renderType).newInstance();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		RenderingMode renderMode = new RenderingMode(renderer, (String) renderingMode.get("label"), (String) renderingMode.get("argument"), (Integer) renderingMode.get("sortWeight"));
+//		return renderMode;
+//	}
+
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
 	@Override
     public ReportRequest save(ReportRequest reportRequest) {
+
 		return getService().saveReportRequest(reportRequest);
 	}
 
@@ -89,6 +119,16 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	@Override
 	protected void delete(ReportRequest reportRequest, String reason, RequestContext context) throws ResponseException {
 		purge(reportRequest, context);
+	}
+
+	@Override
+	public DelegatingResourceDescription getCreatableProperties() {
+		DelegatingResourceDescription delegatingResourceDescription = new DelegatingResourceDescription();
+		delegatingResourceDescription.addProperty("status");
+		delegatingResourceDescription.addProperty("reportDefinition");
+		delegatingResourceDescription.addProperty("renderingMode");
+		delegatingResourceDescription.addProperty("priority");
+		return delegatingResourceDescription;
 	}
 
 	/**

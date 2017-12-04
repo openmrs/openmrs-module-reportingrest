@@ -60,6 +60,27 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 	private ReportRequestResource getResource() {
 		return (ReportRequestResource) Context.getService(RestService.class).getResourceBySupportedClass(ReportRequest.class);
 	}
+
+	@Test
+	public void testCreate() throws Exception {
+		SimpleObject properties = SimpleObject.parseJson("{\n" +
+				"  \"status\": \"REQUESTED\",\n" +
+				"  \"priority\": \"NORMAL\",\n" +
+				"  \"reportDefinition\": {\n" +
+				"  \"type\": \"something\",\n" +
+				"    \"parameterizable\": \"" +
+				REPORT_DEFINITION_UUID +
+				"\",\n" +
+				"    \"parameterMappings\": {\n" +
+				"      \"startDate\": \"2017-01-01\",\n" +
+				"      \"endDate\": \"2017-01-31\"\n" +
+				"    }\n" +
+				"  },\n" +
+				"  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\"\n"+
+				"}");
+		SimpleObject response = (SimpleObject) getResource().create(properties,null);
+		System.out.println("Response is"+response.toString());
+	}
 	
 	@Test
 	public void testGetOne() throws Exception {
