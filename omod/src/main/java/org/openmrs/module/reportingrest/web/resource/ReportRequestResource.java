@@ -13,15 +13,11 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
-import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -36,7 +32,8 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResou
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * {@link Resource} for {@link ReportRequest}s, supporting standard CRUD operations
@@ -74,12 +71,13 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		List<ReportRequest> reportRequests = getService().getReportRequests(reportDefinition, null, null);
 		return new NeedsPaging<ReportRequest>(reportRequests, context);
 	}
-	
+
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
 	@Override
     public ReportRequest save(ReportRequest reportRequest) {
+
 		return getService().saveReportRequest(reportRequest);
 	}
 
@@ -89,6 +87,17 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	@Override
 	protected void delete(ReportRequest reportRequest, String reason, RequestContext context) throws ResponseException {
 		purge(reportRequest, context);
+	}
+
+	@Override
+	public DelegatingResourceDescription getCreatableProperties() {
+		DelegatingResourceDescription delegatingResourceDescription = new DelegatingResourceDescription();
+		delegatingResourceDescription.addProperty("status");
+		delegatingResourceDescription.addProperty("reportDefinition");
+		delegatingResourceDescription.addProperty("baseCohort");
+		delegatingResourceDescription.addProperty("renderingMode");
+		delegatingResourceDescription.addProperty("priority");
+		return delegatingResourceDescription;
 	}
 
 	/**
