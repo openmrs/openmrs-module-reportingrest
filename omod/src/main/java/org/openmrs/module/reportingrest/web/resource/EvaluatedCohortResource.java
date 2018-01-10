@@ -47,7 +47,7 @@ import java.util.List;
  * {@link Resource} for evaluating {@link CohortDefinition}s
  */
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/cohort",
-        supportedClass = EvaluatedCohort.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
+        supportedClass = EvaluatedCohort.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*"})
 public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> {
 
 	private static Log log = LogFactory.getLog(EvaluatedCohortResource.class);

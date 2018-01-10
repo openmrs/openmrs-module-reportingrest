@@ -68,7 +68,7 @@ import java.util.Map;
  * get back the result of evaluating the data set itself
  */
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/adhocquery",
-        supportedClass = AdHocDataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
+        supportedClass = AdHocDataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*"})
 public class AdHocQueryResource implements Creatable {
 
     private AllDefinitionLibraries libraries;

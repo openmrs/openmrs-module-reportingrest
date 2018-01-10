@@ -26,7 +26,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
  * {@link Resource} for {@link DataSetDefinition}s, supporting standard CRUD operations
  */
 @Resource(name = RestConstants.VERSION_1 + "/reportingrest/dataSetDefinition",
-		supportedClass = DataSetDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*"})
+		supportedClass = DataSetDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*"})
 public class DataSetDefinitionResource extends BaseDefinitionResource<DataSetDefinition> {
 	
 	/**
