@@ -1,29 +1,29 @@
 /**
- * The contents of this file are subject to the OpenMRS Public License
- * Version 1.0 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License at
- * http://license.openmrs.org
- *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
- * License for the specific language governing rights and limitations
- * under the License.
- *
- * Copyright (C) OpenMRS, LLC.  All Rights Reserved.
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+ * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+ * <p>
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
  */
 package org.openmrs.module.reportingrest.web.resource;
 
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
+import org.openmrs.module.reporting.evaluation.parameter.Mapped;
+import org.openmrs.module.reporting.evaluation.parameter.Parameterizable;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
-import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
+import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -36,7 +36,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResou
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.openmrs.module.webservices.rest.web.response.ConversionException;
 
 /**
  * {@link Resource} for {@link ReportRequest}s, supporting standard CRUD operations
@@ -91,6 +91,18 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		purge(reportRequest, context);
 	}
 
+	@Override
+	public DelegatingResourceDescription getCreatableProperties() {
+		DelegatingResourceDescription delegatingResourceDescription = new DelegatingResourceDescription();
+		delegatingResourceDescription.addProperty("status");
+		delegatingResourceDescription.addProperty("reportDefinition");
+		delegatingResourceDescription.addProperty("baseCohort");
+		delegatingResourceDescription.addProperty("renderingMode");
+		delegatingResourceDescription.addProperty("priority");
+		delegatingResourceDescription.addProperty("schedule");
+		return delegatingResourceDescription;
+	}
+
 	/**
 	 * @see BaseDelegatingResource#purge(Object, RequestContext)
 	 */
@@ -114,6 +126,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 			//description.addProperty("reportDefinition", Representation.DEFAULT);  TODO: Figure out how to support this
 			description.addProperty("renderingMode");
 			description.addProperty("priority");
+			description.addProperty("schedule");
 			description.addProperty("requestedBy", Representation.REF);
 			description.addProperty("requestDate");
 			description.addProperty("status");
@@ -131,6 +144,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 			//description.addProperty("reportDefinition", Representation.DEFAULT);  TODO: Figure out how to support this
 			description.addProperty("renderingMode");
 			description.addProperty("priority");
+			description.addProperty("schedule");
 			description.addProperty("requestedBy", Representation.DEFAULT);
 			description.addProperty("requestDate");
 			description.addProperty("status");
@@ -141,6 +155,37 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 			description.addSelfLink();
 		}
 		return description;
+	}
+
+	/**
+	 * @see BaseDelegatingResource#setProperty(Object, String, Object)
+	 */
+	@Override
+	public void setProperty(Object instance, String propertyName, Object value) throws ConversionException {
+		Class<?> definitionClassType = null;
+		try {
+			if (propertyName.equals("reportDefinition")) {
+				definitionClassType = ReportDefinition.class;
+			} else if (propertyName.equals("baseCohort")) {
+				definitionClassType = CohortDefinition.class;
+			} else {
+				super.setProperty(instance, propertyName, value);
+				return;
+			}
+
+			Map parametrizableMap = (Map) ((Map) value).get("parameterizable");
+			Map<String, Object> parameterMappings = (Map) ((Map) value).get("parameterMappings");
+
+			if (parametrizableMap == null) {
+				throw new ConversionException("Missing parameterizable");
+			}
+
+			Parameterizable parameterizable = (Parameterizable) ConversionUtil.convert(parametrizableMap.get("uuid"), definitionClassType);
+			Mapped mappedInstance = new Mapped(parameterizable, parameterMappings);
+			PropertyUtils.setProperty(instance, propertyName, mappedInstance);
+		} catch (Exception ex) {
+			throw new ConversionException(propertyName, ex);
+		}
 	}
 
 	/**
