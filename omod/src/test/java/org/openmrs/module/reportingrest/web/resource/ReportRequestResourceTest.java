@@ -105,8 +105,8 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 
 		ReportRequest request = getResource().getByUniqueId((String) response.get("uuid"));
 		assertThat(request.getReportDefinition().getParameterizable().getUuid(), is(REPORT_DEFINITION_UUID));
-		assertThat(request.getReportDefinition().getParameterMappings().containsKey("startDate"), is(true));
-		assertThat(request.getReportDefinition().getParameterMappings().containsKey("endDate"), is(true));
+		assertEquals(request.getReportDefinition().getParameterMappings().get("startDate"), "2017-01-01");
+		assertEquals(request.getReportDefinition().getParameterMappings().get("endDate"), "2017-01-31");
 		assertThat(request.getSchedule(), is("0 42 15 8 2 ? 2018"));
 		assertEquals(request.getPriority(), ReportRequest.Priority.HIGHEST);
 		assertEquals(request.getStatus(), ReportRequest.Status.SCHEDULED);
@@ -145,8 +145,8 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 
 		ReportRequest request = getResource().getByUniqueId((String) response.get("uuid"));
 		assertThat(request.getReportDefinition().getParameterizable().getUuid(), is(REPORT_DEFINITION_UUID));
-		assertThat(request.getReportDefinition().getParameterMappings().containsKey("startDate"), is(true));
-		assertThat(request.getReportDefinition().getParameterMappings().containsKey("endDate"), is(true));
+		assertEquals(request.getReportDefinition().getParameterMappings().get("startDate"), "2017-01-01");
+		assertEquals(request.getReportDefinition().getParameterMappings().get("endDate"), "2017-01-31");
 		assertEquals(request.getPriority(), ReportRequest.Priority.NORMAL);
 		assertEquals(request.getStatus(), ReportRequest.Status.REQUESTED);
 		assertEquals(request.getRenderingMode().toString(), "org.openmrs.module.reporting.report.renderer.CsvReportRenderer!");
