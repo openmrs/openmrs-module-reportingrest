@@ -54,7 +54,7 @@ import java.util.Map;
  * {@link Resource} for evaluating {@link DataSetDefinition}s
  */
 @Resource(name = RestConstants.VERSION_1 + "/reportingrest/dataSet",
-		supportedClass = DataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*"})
+		supportedClass = DataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*", "2.3.*"})
 public class EvaluatedDataSetResource extends EvaluatedResource<DataSet> {
 	
 	private static Log log = LogFactory.getLog(EvaluatedDataSetResource.class);

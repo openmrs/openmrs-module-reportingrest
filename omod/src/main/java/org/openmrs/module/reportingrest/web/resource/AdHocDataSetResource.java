@@ -30,7 +30,7 @@ import org.openmrs.module.webservices.rest.web.resource.api.Purgeable;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/adhocdataset",
-        supportedClass = AdHocDataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*"})
+        supportedClass = AdHocDataSet.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*", "1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*", "2.3.*"})
 public class AdHocDataSetResource implements Creatable, Purgeable {
 
     private ObjectMapper jackson = new ObjectMapper();
