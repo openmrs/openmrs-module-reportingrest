@@ -12,6 +12,11 @@ package org.openmrs.module.reportingrest.web.resource;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.DateProperty;
+import io.swagger.models.properties.IntegerProperty;
+import io.swagger.models.properties.StringProperty;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
@@ -103,6 +108,18 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		return delegatingResourceDescription;
 	}
 
+	@Override
+	public Model getCREATEModel(Representation rep) {
+		ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+		modelImpl.property("status", new StringProperty())
+				.property("reportDefinition", new StringProperty())
+				.property("baseCohort", new StringProperty())
+				.property("renderingMode", new StringProperty())
+				.property("priority", new StringProperty())
+				.property("schedule", new StringProperty());
+		return modelImpl;
+	}
+
 	/**
 	 * @see BaseDelegatingResource#purge(Object, RequestContext)
 	 */
@@ -155,6 +172,38 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 			description.addSelfLink();
 		}
 		return description;
+	}
+
+	@Override
+	public Model getGETModel(Representation rep) {
+		ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+		if (rep instanceof DefaultRepresentation) {
+			modelImpl.property("uuid", new StringProperty())
+					.property("renderingMode", new StringProperty())
+					.property("priority", new StringProperty())
+					.property("schedule", new StringProperty())
+					.property("requestedBy", new StringProperty())
+					.property("requestDate", new DateProperty())
+					.property("status", new StringProperty())
+					.property("evaluateStartDatetime", new DateProperty())
+					.property("evaluateCompleteDatetime", new DateProperty())
+					.property("renderCompleteDatetime", new DateProperty())
+					.property("description", new StringProperty());
+		}
+		if (rep instanceof FullRepresentation) {
+			modelImpl.property("uuid", new StringProperty())
+					.property("renderingMode", new StringProperty())
+					.property("priority", new StringProperty())
+					.property("schedule", new StringProperty())
+					.property("requestedBy", new StringProperty())
+					.property("requestDate", new DateProperty())
+					.property("status", new StringProperty())
+					.property("evaluateStartDatetime", new DateProperty())
+					.property("evaluateCompleteDatetime", new DateProperty())
+					.property("renderCompleteDatetime", new DateProperty())
+					.property("description", new StringProperty());
+		}
+		return modelImpl;
 	}
 
 	/**

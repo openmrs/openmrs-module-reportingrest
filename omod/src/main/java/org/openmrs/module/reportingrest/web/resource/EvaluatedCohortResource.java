@@ -13,6 +13,10 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.DateProperty;
+import io.swagger.models.properties.StringProperty;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
@@ -38,6 +42,7 @@ import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 import java.util.ArrayList;
@@ -162,6 +167,57 @@ public class EvaluatedCohortResource extends EvaluatedResource<EvaluatedCohort> 
 		}
 
 		return description;
+	}
+
+	@Override
+	public Model getGETModel(Representation rep) {
+		ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+		modelImpl.property("uuid", new StringProperty())
+				.property("renderingMode", new StringProperty())
+				.property("priority", new StringProperty())
+				.property("schedule", new StringProperty())
+				.property("requestedBy", new StringProperty())
+				.property("requestDate", new DateProperty())
+				.property("status", new StringProperty())
+				.property("evaluateStartDatetime", new DateProperty())
+				.property("evaluateCompleteDatetime", new DateProperty())
+				.property("renderCompleteDatetime", new DateProperty())
+				.property("description", new StringProperty());
+		return modelImpl;
+	}
+
+	@Override
+	public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+		DelegatingResourceDescription delegatingResourceDescription = new DelegatingResourceDescription();
+		delegatingResourceDescription.addProperty("uuid");
+		delegatingResourceDescription.addProperty("renderingMode");
+		delegatingResourceDescription.addProperty("priority");
+		delegatingResourceDescription.addProperty("schedule");
+		delegatingResourceDescription.addProperty("requestedBy");
+		delegatingResourceDescription.addProperty("requestDate");
+		delegatingResourceDescription.addProperty("status");
+		delegatingResourceDescription.addProperty("evaluateStartDatetime");
+		delegatingResourceDescription.addProperty("evaluateCompleteDatetime");
+		delegatingResourceDescription.addProperty("renderCompleteDatetime");
+		delegatingResourceDescription.addProperty("description");
+		return delegatingResourceDescription;
+	}
+
+	@Override
+	public Model getCREATEModel(Representation rep) {
+		ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+		modelImpl.property("uuid", new StringProperty())
+				.property("renderingMode", new StringProperty())
+				.property("priority", new StringProperty())
+				.property("schedule", new StringProperty())
+				.property("requestedBy", new StringProperty())
+				.property("requestDate", new DateProperty())
+				.property("status", new StringProperty())
+				.property("evaluateStartDatetime", new DateProperty())
+				.property("evaluateCompleteDatetime", new DateProperty())
+				.property("renderCompleteDatetime", new DateProperty())
+				.property("description", new StringProperty());
+		return modelImpl;
 	}
 
 	/**

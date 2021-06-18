@@ -164,7 +164,7 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 	private void assertCohortMembers(Object evaluated, String json, String[] expectedUuids) throws Exception {
 		assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
 		for (String expected : expectedUuids) {
-			assertTrue(json.contains("/patient/" + expected));
+			assertTrue(json.contains("/person/" + expected));
 		}
 	}
 
