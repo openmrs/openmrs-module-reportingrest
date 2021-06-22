@@ -1,5 +1,8 @@
 package org.openmrs.module.reportingrest.web.resource;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.StringProperty;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
@@ -22,6 +25,7 @@ import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentat
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.springframework.util.StringUtils;
 
@@ -52,6 +56,38 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
         }
 
         return description;
+    }
+
+    @Override
+    public Model getGETModel(Representation rep) {
+        ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+        if (rep instanceof DefaultRepresentation) {
+            modelImpl.property("uuid", new StringProperty())
+                    .property("dataSets", new StringProperty())
+                    .property("context", new StringProperty())
+                    .property("definition", new StringProperty());
+        }
+        return modelImpl;
+    }
+
+    @Override
+    public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+        DelegatingResourceDescription delegatingResourceDescription = new DelegatingResourceDescription();
+        delegatingResourceDescription.addProperty("uuid");
+        delegatingResourceDescription.addProperty("dataSets");
+        delegatingResourceDescription.addProperty("context");
+        delegatingResourceDescription.addProperty("definition");
+        return delegatingResourceDescription;
+    }
+
+    @Override
+    public Model getCREATEModel(Representation rep) {
+        ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+        modelImpl.property("uuid", new StringProperty())
+                .property("dataSets", new StringProperty())
+                .property("context", new StringProperty())
+                .property("definition", new StringProperty());
+        return modelImpl;
     }
 
     @PropertyGetter("dataSets")
@@ -143,6 +179,11 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
         } catch (Exception ex) {
             throw new IllegalArgumentException("Error evaluating report definition", ex);
         }
+    }
+
+    @Override
+    public ReportData newDelegate() {
+        return new ReportData();
     }
 
 }
