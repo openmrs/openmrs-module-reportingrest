@@ -96,8 +96,7 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		
 		if (rep instanceof DefaultRepresentation) {
 			description = new DelegatingResourceDescription();
-            description.addProperty("class");
-            description.addProperty("uuid");
+			description.addProperty("uuid");
 			description.addProperty("name");
 			description.addProperty("description");
 			description.addProperty("parameters");
@@ -106,7 +105,6 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 		} 
 		else if (rep instanceof FullRepresentation) {
 			description = new DelegatingResourceDescription();
-            description.addProperty("class");
 			description.addProperty("uuid");
 			description.addProperty("name");
 			description.addProperty("description");
