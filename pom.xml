@@ -14,7 +14,7 @@
     <scm>
         <connection>scm:git:git@github.com:openmrs/openmrs-module-reportingrest.git</connection>
         <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-reportingrest.git</developerConnection>
-        <url>scm:git:git@github.com:openmrs/openmrs-module-reportingrest.git</url>
+        <url>https://github.com/openmrs/openmrs-module-reportingrest/</url>
         <tag>HEAD</tag>
     </scm>
 
