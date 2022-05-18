@@ -27,7 +27,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
  * {@link Resource} for {@link ReportDefinition}s, supporting standard CRUD operations
  */
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/reportDefinition",
-        supportedClass = ReportDefinition.class, supportedOpenmrsVersions = {"1.8.*", "1.9.*, 1.10.*, 1.11.*", "1.12.*", "2.0.*", "2.1.*", "2.2.*", "2.3.*", "2.4.*", "2.5.*", "2.6.*"})
+        supportedClass = ReportDefinition.class, supportedOpenmrsVersions = {"1.8.* - 9.9.*"})
 public class ReportDefinitionResource extends BaseDefinitionResource<ReportDefinition> {
 	
 	/**
