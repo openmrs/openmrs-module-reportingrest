@@ -28,6 +28,7 @@ import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -39,9 +40,10 @@ import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
-import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
+import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 /**
  * {@link Resource} for {@link ReportRequest}s, supporting standard CRUD operations
@@ -242,5 +244,19 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	 */
 	private ReportService getService() {
 		return Context.getService(ReportService.class);
+	}
+	
+	@Override
+	public SimpleObject asRepresentation(ReportRequest delegate, Representation representation) throws ConversionException {
+		DelegatingResourceHandler<ReportRequest> handler = (DelegatingResourceHandler<ReportRequest>) getResourceHandler(
+		    delegate);
+		DelegatingResourceDescription repDescription = handler.getRepresentationDescription(representation);
+		if (repDescription != null) {
+			SimpleObject simple = convertDelegateToRepresentation(delegate, repDescription);
+			
+			return simple;
+		}
+		
+		return (SimpleObject) ConversionUtil.convertToRepresentation(delegate, Representation.DEFAULT);
 	}
 }
