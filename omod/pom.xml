@@ -66,11 +66,14 @@
 			<artifactId>openmrs-test</artifactId>
 			<type>pom</type>
 		</dependency>
-
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>uiframework-api</artifactId>
 		</dependency>
 	</dependencies>
 
