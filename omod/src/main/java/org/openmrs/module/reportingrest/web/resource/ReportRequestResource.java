@@ -21,7 +21,6 @@ import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.evaluation.parameter.Parameterizable;
 import org.openmrs.module.reporting.report.ReportRequest;
-import org.openmrs.module.reporting.report.ReportRequestDTO;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
@@ -97,9 +96,11 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 			ReportService reportService = getService();
 			Integer pageNumber = context.getStartIndex();
 			Integer pageSize = context.getLimit();
-			ReportRequestDTO reportRequestsDTO = reportService.getReportsWithPagination(
-					null, null, null, pageNumber, pageSize, statuses.toArray(new ReportRequest.Status[0]));
-			List<ReportRequest> reportRequests = reportRequestsDTO.getReportRequests();
+			List<ReportRequest> reportRequests =
+					reportService.getReportRequests(null, null, null, pageNumber - 1, pageNumber * pageSize,
+							statuses.toArray(new ReportRequest.Status[0]));
+			long reportRequestsTotalCount =
+					reportService.getReportRequestsCount(null, null, null, statuses.toArray(new ReportRequest.Status[0]));
 
 			String sortByParameter = context.getParameter("sortBy");
 			if (StringUtils.isBlank(sortByParameter) || "priority".equals(sortByParameter)) {
@@ -128,7 +129,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 				}
 			}
 
-			return new AlreadyPaged<ReportRequest>(context, reportRequests, reportRequestsDTO.getReportRequestCount() > (long) pageNumber * pageSize, reportRequestsDTO.getReportRequestCount());
+			return new AlreadyPaged<ReportRequest>(context, reportRequests, reportRequestsTotalCount > (long) pageNumber * pageSize, reportRequestsTotalCount);
 		}
 
 		String reportDefinitionParam = context.getParameter("reportDefinition");
@@ -142,7 +143,6 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		}
 
 		List<ReportRequest> reportRequests = getService().getReportRequests(reportDefinition, null, null);
-
 		return new AlreadyPaged<ReportRequest>(context, reportRequests, false);
 	}
 

@@ -1,17 +1,12 @@
 /**
- * The contents of this file are subject to the OpenMRS Public License
- * Version 1.0 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License at
- * http://license.openmrs.org
- *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
- * License for the specific language governing rights and limitations
- * under the License.
- *
- * Copyright (C) OpenMRS, LLC.  All Rights Reserved.
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+ * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+ * <p>
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
  */
-
 package org.openmrs.module.reportingrest.web.resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +24,7 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
@@ -37,8 +33,8 @@ import java.util.List;
 /**
  * {@link Resource} for {@link ReportDesign}s, supporting standard CRUD operations
  */
-@Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/designs",
-supportedClass = ReportDesign.class, supportedOpenmrsVersions = {"1.8.* - 9.9.*"})
+@Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/reportDesign",
+    supportedClass = ReportDesign.class, supportedOpenmrsVersions = {"1.8.* - 9.9.*"})
 public class ReportDesignResource extends DelegatingCrudResource<ReportDesign> {
 
   @Override
@@ -59,8 +55,11 @@ public class ReportDesignResource extends DelegatingCrudResource<ReportDesign> {
     }
 
     ReportDefinition reportDefinition = getReportDefinitionService().getDefinitionByUuid(reportDefinitionUuid);
-    List<ReportDesign> reportDesigns = getReportService().getReportDesigns(reportDefinition, null, false);
+    if(reportDefinition == null) {
+      return new EmptySearchResult();
+    }
 
+    List<ReportDesign> reportDesigns = getReportService().getReportDesigns(reportDefinition, null, false);
     return new NeedsPaging<ReportDesign>(reportDesigns, context);
   }
 

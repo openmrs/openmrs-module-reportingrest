@@ -1,23 +1,15 @@
 /**
- * The contents of this file are subject to the OpenMRS Public License
- * Version 1.0 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License at
- * http://license.openmrs.org
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+ * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
  *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
- * License for the specific language governing rights and limitations
- * under the License.
- *
- * Copyright (C) OpenMRS, LLC.  All Rights Reserved.
+ * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+ * graphic logo is a trademark of OpenMRS Inc.
  */
 package org.openmrs.module.reportingrest.web.controller;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.openmrs.Location;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
@@ -29,10 +21,11 @@ import org.openmrs.module.reporting.report.definition.service.ReportDefinitionSe
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reporting.web.renderers.WebReportRenderer;
+import org.openmrs.module.reportingrest.web.ReportFile;
 import org.openmrs.module.reportingrest.web.wrapper.RunReportRequest;
+import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
-import org.openmrs.ui.framework.page.FileDownload;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,9 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,8 +47,6 @@ import java.util.Map;
 public class ReportingRestController extends MainResourceController {
 
     public static final String REPORTING_REST_NAMESPACE = "/reportingrest";
-
-    private static final Log LOGGER = LogFactory.getLog(ReportingRestController.class);
 
     /**
      * @see org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController#getNamespace()
@@ -78,7 +67,7 @@ public class ReportingRestController extends MainResourceController {
         Map<String, Object> parameterValues = new HashMap<String, Object>();
         for (Parameter parameter : reportDefinition.getParameters()) {
             Object convertedObj =
-                convertParamValueToObject(runReportRequest.getReportParameters().get(parameter.getName()), parameter.getType());
+                ConversionUtil.convert(runReportRequest.getReportParameters().get(parameter.getName()), parameter.getType());
             parameterValues.put(parameter.getName(), convertedObj);
         }
 
@@ -116,9 +105,9 @@ public class ReportingRestController extends MainResourceController {
         }
     }
 
-    @RequestMapping(value = "/preserveReport", method = RequestMethod.POST)
+    @RequestMapping(value = "/saveReport", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
-    public void preserveReport(@RequestParam String reportRequestUuid) {
+    public void saveReport(@RequestParam String reportRequestUuid) {
         ReportService reportService = getReportService();
         ReportRequest reportRequest = reportService.getReportRequestByUuid(reportRequestUuid);
         if (ReportRequest.Status.COMPLETED.equals(reportRequest.getStatus())) {
@@ -129,14 +118,14 @@ public class ReportingRestController extends MainResourceController {
 
     @RequestMapping(value = "/downloadReport", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public FileDownload downloadReport(@RequestParam String reportRequestUuid) {
+    public ReportFile downloadReport(@RequestParam String reportRequestUuid) {
         return processAndDownloadReport(reportRequestUuid, getReportService());
     }
 
     @RequestMapping(value = "/downloadMultipleReports", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public List<FileDownload> downloadMultipleReports(@RequestParam String reportRequestUuids) {
-        List<FileDownload> fileDownloadList = new ArrayList<FileDownload>();
+    public List<ReportFile> downloadMultipleReports(@RequestParam String reportRequestUuids) {
+        List<ReportFile> fileDownloadList = new ArrayList<ReportFile>();
         ReportService reportService = getReportService();
         for (String reportRequestUuid : reportRequestUuids.split(",")) {
             fileDownloadList.add(processAndDownloadReport(reportRequestUuid, reportService));
@@ -145,15 +134,15 @@ public class ReportingRestController extends MainResourceController {
         return fileDownloadList;
     }
 
-    private FileDownload processAndDownloadReport(String reportRequestUuid, ReportService reportService) {
+    private ReportFile processAndDownloadReport(String reportRequestUuid, ReportService reportService) {
         ReportRequest reportRequest = reportService.getReportRequestByUuid(reportRequestUuid);
         if (reportRequest == null) {
-            throw new IllegalArgumentException("Report request not found");
+            throw new IllegalArgumentException("Report request not found for UUID: " + reportRequestUuid);
         }
 
         RenderingMode renderingMode = reportRequest.getRenderingMode();
         if (renderingMode.getRenderer() instanceof WebReportRenderer) {
-            throw new IllegalStateException("Web Renderers not implemented yet");
+            throw new IllegalStateException("WebReportRenderer not implemented yet");
         }
 
         String fileName = renderingMode.getRenderer().getFilename(reportRequest).replace(" ", "_");
@@ -163,30 +152,8 @@ public class ReportingRestController extends MainResourceController {
         if (fileContent == null) {
             throw new IllegalStateException("Error during loading rendered output");
         } else {
-            return new FileDownload(fileName, contentType, fileContent);
+            return new ReportFile(fileName, contentType, fileContent);
         }
-    }
-
-    private Object convertParamValueToObject(Object value, Class<?> type) {
-        Object convertedObject = value;
-
-        if (type.equals(Date.class)) {
-            try {
-                convertedObject = DateUtils.parseDate((String) value, "MM/dd/yyyy");
-            } catch (ParseException e) {
-                LOGGER.error("Error while parsing date");
-            }
-        }
-
-        if (type.equals(Integer.class)) {
-            convertedObject = Integer.valueOf((String) value);
-        }
-
-        if (type.equals(Location.class)) {
-            convertedObject = Context.getLocationService().getLocationByUuid((String) value);
-        }
-
-        return convertedObject;
     }
 
     private ReportService getReportService() {
