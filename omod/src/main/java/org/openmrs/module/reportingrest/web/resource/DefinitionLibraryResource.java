@@ -110,6 +110,11 @@ public class DefinitionLibraryResource implements CrudResource, Searchable {
     }
 
     @Override
+    public Object undelete(String s, RequestContext requestContext) throws ResponseException {
+        return null;
+    }
+
+    @Override
     public void purge(String s, RequestContext requestContext) throws ResponseException {
         throw new ResourceDoesNotSupportOperationException();
     }

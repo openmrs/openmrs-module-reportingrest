@@ -12,11 +12,9 @@ package org.openmrs.module.reportingrest.web.resource;
 import java.util.List;
 import java.util.Map;
 
-import io.swagger.models.Model;
-import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.DateProperty;
-import io.swagger.models.properties.IntegerProperty;
-import io.swagger.models.properties.StringProperty;
+import io.swagger.v3.oas.models.media.DateTimeSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
@@ -109,14 +107,14 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	}
 
 	@Override
-	public Model getCREATEModel(Representation rep) {
-		ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
-		modelImpl.property("status", new StringProperty())
-				.property("reportDefinition", new StringProperty())
-				.property("baseCohort", new StringProperty())
-				.property("renderingMode", new StringProperty())
-				.property("priority", new StringProperty())
-				.property("schedule", new StringProperty());
+	public Schema<?> getCREATESchema(Representation rep) {
+		Schema<?> modelImpl = super.getGETSchema(rep);
+		modelImpl.addProperty("status", new StringSchema())
+				.addProperty("reportDefinition", new StringSchema())
+				.addProperty("baseCohort", new StringSchema())
+				.addProperty("renderingMode", new StringSchema())
+				.addProperty("priority", new StringSchema())
+				.addProperty("schedule", new StringSchema());
 		return modelImpl;
 	}
 
@@ -175,33 +173,33 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	}
 
 	@Override
-	public Model getGETModel(Representation rep) {
-		ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+	public Schema<?> getGETSchema(Representation rep) {
+		Schema<?> modelImpl = super.getGETSchema(rep);
 		if (rep instanceof DefaultRepresentation) {
-			modelImpl.property("uuid", new StringProperty())
-					.property("renderingMode", new StringProperty())
-					.property("priority", new StringProperty())
-					.property("schedule", new StringProperty())
-					.property("requestedBy", new StringProperty())
-					.property("requestDate", new DateProperty())
-					.property("status", new StringProperty())
-					.property("evaluateStartDatetime", new DateProperty())
-					.property("evaluateCompleteDatetime", new DateProperty())
-					.property("renderCompleteDatetime", new DateProperty())
-					.property("description", new StringProperty());
+			modelImpl.addProperty("uuid", new StringSchema())
+					.addProperty("renderingMode", new StringSchema())
+					.addProperty("priority", new StringSchema())
+					.addProperty("schedule", new StringSchema())
+					.addProperty("requestedBy", new StringSchema())
+					.addProperty("requestDate", new DateTimeSchema())
+					.addProperty("status", new StringSchema())
+					.addProperty("evaluateStartDatetime", new DateTimeSchema())
+					.addProperty("evaluateCompleteDatetime", new DateTimeSchema())
+					.addProperty("renderCompleteDatetime", new DateTimeSchema())
+					.addProperty("description", new StringSchema());
 		}
 		if (rep instanceof FullRepresentation) {
-			modelImpl.property("uuid", new StringProperty())
-					.property("renderingMode", new StringProperty())
-					.property("priority", new StringProperty())
-					.property("schedule", new StringProperty())
-					.property("requestedBy", new StringProperty())
-					.property("requestDate", new DateProperty())
-					.property("status", new StringProperty())
-					.property("evaluateStartDatetime", new DateProperty())
-					.property("evaluateCompleteDatetime", new DateProperty())
-					.property("renderCompleteDatetime", new DateProperty())
-					.property("description", new StringProperty());
+			modelImpl.addProperty("uuid", new StringSchema())
+					.addProperty("renderingMode", new StringSchema())
+					.addProperty("priority", new StringSchema())
+					.addProperty("schedule", new StringSchema())
+					.addProperty("requestedBy", new StringSchema())
+					.addProperty("requestDate", new DateTimeSchema())
+					.addProperty("status", new StringSchema())
+					.addProperty("evaluateStartDatetime", new DateTimeSchema())
+					.addProperty("evaluateCompleteDatetime", new DateTimeSchema())
+					.addProperty("renderCompleteDatetime", new DateTimeSchema())
+					.addProperty("description", new StringSchema());
 		}
 		return modelImpl;
 	}
