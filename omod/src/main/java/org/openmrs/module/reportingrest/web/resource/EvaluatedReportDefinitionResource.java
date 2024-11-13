@@ -1,8 +1,7 @@
 package org.openmrs.module.reportingrest.web.resource;
 
-import io.swagger.models.Model;
-import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.StringProperty;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
@@ -59,13 +58,13 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
     }
 
     @Override
-    public Model getGETModel(Representation rep) {
-        ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
+    public Schema<?> getGETSchema(Representation rep) {
+        Schema<?> modelImpl = super.getGETSchema(rep);
         if (rep instanceof DefaultRepresentation) {
-            modelImpl.property("uuid", new StringProperty())
-                    .property("dataSets", new StringProperty())
-                    .property("context", new StringProperty())
-                    .property("definition", new StringProperty());
+            modelImpl.addProperty("uuid", new StringSchema())
+                    .addProperty("dataSets", new StringSchema())
+                    .addProperty("context", new StringSchema())
+                    .addProperty("definition", new StringSchema());
         }
         return modelImpl;
     }
@@ -81,12 +80,12 @@ public class EvaluatedReportDefinitionResource extends EvaluatedResource<ReportD
     }
 
     @Override
-    public Model getCREATEModel(Representation rep) {
-        ModelImpl modelImpl = ((ModelImpl) super.getGETModel(rep));
-        modelImpl.property("uuid", new StringProperty())
-                .property("dataSets", new StringProperty())
-                .property("context", new StringProperty())
-                .property("definition", new StringProperty());
+    public Schema<?> getCREATESchema(Representation rep) {
+        Schema<?> modelImpl = super.getGETSchema(rep);
+        modelImpl.addProperty("uuid", new StringSchema())
+                .addProperty("dataSets", new StringSchema())
+                .addProperty("context", new StringSchema())
+                .addProperty("definition", new StringSchema());
         return modelImpl;
     }
 
