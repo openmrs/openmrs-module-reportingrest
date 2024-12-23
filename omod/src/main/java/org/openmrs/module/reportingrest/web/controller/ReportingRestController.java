@@ -81,7 +81,7 @@ public class ReportingRestController extends MainResourceController {
         }
 
         final ReportRequest reportRequest;
-        if(StringUtils.isNotBlank(runReportRequest.getExistingRequestUuid())) {
+        if (StringUtils.isNotBlank(runReportRequest.getExistingRequestUuid())) {
             reportRequest = reportService.getReportRequestByUuid(runReportRequest.getExistingRequestUuid());
         } else {
             reportRequest = new ReportRequest();
@@ -93,16 +93,6 @@ public class ReportingRestController extends MainResourceController {
 
         reportService.queueReport(reportRequest);
         reportService.processNextQueuedReports();
-    }
-
-    @RequestMapping(value = "/cancelReport", method = RequestMethod.DELETE)
-    @ResponseStatus(HttpStatus.OK)
-    public void cancelReport(@RequestParam String reportRequestUuid) {
-        ReportService reportService = getReportService();
-        ReportRequest reportRequest = reportService.getReportRequestByUuid(reportRequestUuid);
-        if (reportRequest != null) {
-            reportService.purgeReportRequest(reportRequest);
-        }
     }
 
     @RequestMapping(value = "/saveReport", method = RequestMethod.POST)
@@ -141,10 +131,6 @@ public class ReportingRestController extends MainResourceController {
         }
 
         RenderingMode renderingMode = reportRequest.getRenderingMode();
-        if (renderingMode.getRenderer() instanceof WebReportRenderer) {
-            throw new IllegalStateException("WebReportRenderer not implemented yet");
-        }
-
         String fileName = renderingMode.getRenderer().getFilename(reportRequest).replace(" ", "_");
         String contentType = renderingMode.getRenderer().getRenderedContentType(reportRequest);
         byte[] fileContent = reportService.loadRenderedOutput(reportRequest);

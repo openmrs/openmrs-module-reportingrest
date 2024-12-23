@@ -43,10 +43,12 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.openmrs.util.OpenmrsUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -74,25 +76,9 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 
 	@Override
 	protected PageableResult doSearch(RequestContext context) {
-		String statusesGroup = context.getParameter("statusesGroup");
-		if (StringUtils.isNotBlank(statusesGroup)) {
-			List<ReportRequest.Status> statuses = new ArrayList<ReportRequest.Status>();
-			if (StringUtils.equalsIgnoreCase(statusesGroup, "ran")) {
-				Collections.addAll(
-						statuses,
-						ReportRequest.Status.REQUESTED,
-						ReportRequest.Status.COMPLETED,
-						ReportRequest.Status.SAVED,
-						ReportRequest.Status.FAILED,
-						ReportRequest.Status.PROCESSING);
-			} else if (StringUtils.equalsIgnoreCase(statusesGroup, "processing")) {
-				Collections.addAll(statuses, ReportRequest.Status.REQUESTED, ReportRequest.Status.PROCESSING);
-			} else if (StringUtils.equalsIgnoreCase(statusesGroup, "scheduled")) {
-				Collections.addAll(
-						statuses,
-						ReportRequest.Status.SCHEDULED,
-						ReportRequest.Status.SCHEDULE_COMPLETED);
-			}
+		String commaSeparatedStatuses = context.getParameter("status");
+		if (StringUtils.isNotBlank(commaSeparatedStatuses)) {
+			List<ReportRequest.Status> statuses = collectAppropriateStatuses(commaSeparatedStatuses);
 			ReportService reportService = getService();
 			Integer pageNumber = context.getStartIndex();
 			Integer pageSize = context.getLimit();
@@ -146,12 +132,43 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		return new AlreadyPaged<ReportRequest>(context, reportRequests, false);
 	}
 
+	private List<ReportRequest.Status> collectAppropriateStatuses(String commaSeparatedStatuses) {
+		List<ReportRequest.Status> reportRequestStatusList = new ArrayList<ReportRequest.Status>();
+
+		String[] splitStatuses = commaSeparatedStatuses.split(",");
+		for (String status : splitStatuses) {
+			if ("ran".equalsIgnoreCase(status)) {
+				Collections.addAll(reportRequestStatusList,
+						ReportRequest.Status.REQUESTED,
+						ReportRequest.Status.COMPLETED,
+						ReportRequest.Status.SAVED,
+						ReportRequest.Status.FAILED,
+						ReportRequest.Status.PROCESSING);
+			} else if ("processing".equalsIgnoreCase(status)) {
+				Collections.addAll(reportRequestStatusList,
+						ReportRequest.Status.REQUESTED,
+						ReportRequest.Status.PROCESSING);
+			} else if ("scheduled".equalsIgnoreCase(status)) {
+				Collections.addAll(reportRequestStatusList,
+						ReportRequest.Status.SCHEDULED,
+						ReportRequest.Status.SCHEDULE_COMPLETED);
+			}
+		}
+
+		return reportRequestStatusList;
+	}
+
 	/**
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
 	@Override
     public ReportRequest save(ReportRequest reportRequest) {
-		return getService().saveReportRequest(reportRequest);
+		ReportService reportService = getService();
+		if (reportService.getReportRequestByUuid(reportRequest.getUuid()) == null) {
+			return reportService.queueReport(reportRequest);
+		} else {
+			return reportService.saveReportRequest(reportRequest);
+		}
 	}
 
 	/**
