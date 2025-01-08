@@ -13,7 +13,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Map;
 
-public class RunReportRequest {
+public class RunReportRequestDTO {
   private String existingRequestUuid;
   private String reportDefinitionUuid;
   private String renderModeUuid;

@@ -16,7 +16,7 @@ import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
-import org.openmrs.module.reportingrest.web.wrapper.ScheduledReport;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -34,8 +34,8 @@ import java.util.Comparator;
 import java.util.List;
 
 @Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/scheduledReport",
-    supportedClass = ScheduledReport.class, supportedOpenmrsVersions = {"1.8.* - 9.9.*"})
-public class ScheduledReportResource extends DelegatingCrudResource<ScheduledReport> {
+    supportedClass = SimpleObject.class, supportedOpenmrsVersions = {"1.8.* - 9.9.*"})
+public class ScheduledReportResource extends DelegatingCrudResource<SimpleObject> {
 
   @Override
   public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
@@ -46,36 +46,36 @@ public class ScheduledReportResource extends DelegatingCrudResource<ScheduledRep
   }
 
   @Override
-  public ScheduledReport newDelegate() {
-    return new ScheduledReport();
+  public SimpleObject newDelegate() {
+    return new SimpleObject();
   }
 
   @Override
-  public ScheduledReport save(ScheduledReport scheduledReport) {
+  public SimpleObject save(SimpleObject scheduledReport) {
     throw new ResourceDoesNotSupportOperationException();
   }
 
   @Override
-  public void purge(ScheduledReport scheduledReport, RequestContext requestContext) throws ResponseException {
+  public void purge(SimpleObject scheduledReport, RequestContext requestContext) throws ResponseException {
     throw new ResourceDoesNotSupportOperationException();
   }
 
   @Override
-  protected void delete(ScheduledReport scheduledReport, String s, RequestContext requestContext) throws ResponseException {
+  protected void delete(SimpleObject scheduledReport, String s, RequestContext requestContext) throws ResponseException {
     throw new ResourceDoesNotSupportOperationException();
   }
 
   @Override
-  public ScheduledReport getByUniqueId(String s) {
+  public SimpleObject getByUniqueId(String s) {
     throw new ResourceDoesNotSupportOperationException();
   }
 
   @Override
   protected PageableResult doGetAll(RequestContext context) throws ResponseException {
     final List<ReportDefinition> reportDefinitions = getSortedReportDefinitions(context);
-    final List<ScheduledReport> scheduledReports = mergeScheduledReports(reportDefinitions);
+    List<SimpleObject> scheduledReports = mergeScheduledReports(reportDefinitions);
 
-    return new AlreadyPaged<ScheduledReport>(context, scheduledReports, false);
+    return new AlreadyPaged<SimpleObject>(context, scheduledReports, false);
   }
 
   @Override
@@ -91,8 +91,8 @@ public class ScheduledReportResource extends DelegatingCrudResource<ScheduledRep
     return reportDefinitions;
   }
 
-  private List<ScheduledReport> mergeScheduledReports(List<ReportDefinition> reportDefinitions) {
-    final List<ScheduledReport> mergedScheduledReports = new ArrayList<ScheduledReport>();
+  private List<SimpleObject> mergeScheduledReports(List<ReportDefinition> reportDefinitions) {
+    List<SimpleObject> scheduledReports = new ArrayList<SimpleObject>();
 
     for (ReportDefinition reportDefinition : reportDefinitions) {
       List<ReportRequest> reportRequests = Context
@@ -100,17 +100,20 @@ public class ScheduledReportResource extends DelegatingCrudResource<ScheduledRep
           .getReportRequests(reportDefinition, null, null, ReportRequest.Status.SCHEDULED,
               ReportRequest.Status.SCHEDULE_COMPLETED);
 
-      // In case there are Scheduled Reports created via a legacy UI which allows to have multiple schedules per report
       if (reportRequests.isEmpty()) {
-        mergedScheduledReports.add(new ScheduledReport(reportDefinition, null));
+        scheduledReports.add(new SimpleObject()
+            .add("reportDefinition", reportDefinition)
+            .add("reportScheduleRequest", null));
       } else {
         for (ReportRequest reportRequest : reportRequests) {
-          mergedScheduledReports.add(new ScheduledReport(reportDefinition, reportRequest));
+          scheduledReports.add(new SimpleObject()
+              .add("reportDefinition", reportDefinition)
+              .add("reportScheduleRequest", reportRequest));
         }
       }
     }
 
-    return mergedScheduledReports;
+    return scheduledReports;
   }
 
   private Comparator<ReportDefinition> getComparatorForRequestSorting(RequestContext context) {
