@@ -210,6 +210,8 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 			request.addParameter(paramNamesAndValues[i], paramNamesAndValues[i + 1]);
 		}
 		RequestContext context = new RequestContext();
+		context.setStartIndex(1);
+		context.setLimit(50);
 		context.setRequest(request);
 		return context;
 	}

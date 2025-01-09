@@ -21,7 +21,6 @@ import org.openmrs.module.reporting.report.definition.service.ReportDefinitionSe
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.ReportFile;
-import org.openmrs.module.reportingrest.web.wrapper.RunReportRequestDTO;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
@@ -57,38 +56,38 @@ public class ReportingRestController extends MainResourceController {
 
     @RequestMapping(value = "/runReport", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
-    public void runReport(@RequestBody RunReportRequestDTO runReportRequestDTO) {
+    public void runReport(@RequestBody ReportRequest reportRequestParam) {
         ReportDefinition reportDefinition = Context.getService(ReportDefinitionService.class)
-            .getDefinitionByUuid(runReportRequestDTO.getReportDefinitionUuid());
+            .getDefinitionByUuid(reportRequestParam.getReportDefinition().getParameterizable().getUuid());
 
         ReportService reportService = getReportService();
 
         Map<String, Object> parameterValues = new HashMap<String, Object>();
         for (Parameter parameter : reportDefinition.getParameters()) {
             Object convertedObj =
-                ConversionUtil.convert(runReportRequestDTO.getReportParameters().get(parameter.getName()), parameter.getType());
+                ConversionUtil.convert(reportRequestParam.getReportDefinition().getParameterMappings().get(parameter.getName()), parameter.getType());
             parameterValues.put(parameter.getName(), convertedObj);
         }
 
         List<RenderingMode> renderingModes = reportService.getRenderingModes(reportDefinition);
         RenderingMode renderingMode = null;
         for (RenderingMode mode : renderingModes) {
-            if (StringUtils.equals(mode.getArgument(), runReportRequestDTO.getRenderModeUuid())) {
+            if (StringUtils.equals(mode.getArgument(), reportRequestParam.getRenderingMode().getArgument())) {
                 renderingMode = mode;
                 break;
             }
         }
 
         final ReportRequest reportRequest;
-        if (StringUtils.isNotBlank(runReportRequestDTO.getExistingRequestUuid())) {
-            reportRequest = reportService.getReportRequestByUuid(runReportRequestDTO.getExistingRequestUuid());
+        if (reportRequestParam.getUuid() != null) {
+            reportRequest = reportService.getReportRequestByUuid(reportRequestParam.getUuid());
         } else {
             reportRequest = new ReportRequest();
         }
         reportRequest.setReportDefinition(new Mapped<ReportDefinition>(reportDefinition, parameterValues));
         reportRequest.setRenderingMode(renderingMode);
         reportRequest.setPriority(ReportRequest.Priority.NORMAL);
-        reportRequest.setSchedule(runReportRequestDTO.getSchedule());
+        reportRequest.setSchedule(reportRequestParam.getSchedule());
 
         reportService.queueReport(reportRequest);
         reportService.processNextQueuedReports();

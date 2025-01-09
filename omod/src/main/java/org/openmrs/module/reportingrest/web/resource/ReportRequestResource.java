@@ -71,68 +71,59 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		return getService().getReportRequestByUuid(uuid);
 	}
 
+
 	@Override
 	protected PageableResult doSearch(RequestContext context) {
-		String commaSeparatedStatuses = context.getParameter("status");
-		if (StringUtils.isNotBlank(commaSeparatedStatuses)) {
-			List<ReportRequest.Status> statuses = collectAppropriateStatuses(commaSeparatedStatuses);
-			ReportService reportService = getService();
-			Integer pageNumber = context.getStartIndex();
-			Integer pageSize = context.getLimit();
-			List<ReportRequest> reportRequests =
-					reportService.getReportRequests(null, null, null, pageNumber - 1, pageNumber * pageSize,
-							statuses.toArray(new ReportRequest.Status[0]));
-			long reportRequestsTotalCount =
-					reportService.getReportRequestsCount(null, null, null, statuses.toArray(new ReportRequest.Status[0]));
+		List<ReportRequest.Status> statuses = findAppropriateStatuses(context);
+		ReportDefinition reportDefinition = findReportDefinition(context);
 
-			String sortByParameter = context.getParameter("sortBy");
-			if (StringUtils.isBlank(sortByParameter) || "priority".equals(sortByParameter)) {
-				Collections.sort(reportRequests, new ReportRequest.PriorityComparator());
-				Collections.reverse(reportRequests);
-			} else if("name".equals(sortByParameter)) {
-				Collections.sort(reportRequests, new Comparator<ReportRequest>() {
-					@Override
-					public int compare(ReportRequest left, ReportRequest right) {
-						return left
-								.getReportDefinition()
-								.getParameterizable()
-								.getName()
-								.compareTo(right.getReportDefinition().getParameterizable().getName());
-					}
-				});
-			}
+		ReportService reportService = getService();
+		Integer pageNumber = context.getStartIndex();
+		Integer pageSize = context.getLimit();
+		List<ReportRequest> reportRequests =
+				reportService.getReportRequests(reportDefinition, null, null, pageNumber - 1, pageNumber * pageSize,
+						statuses.toArray(new ReportRequest.Status[0]));
+		long reportRequestsTotalCount =
+				reportService.getReportRequestsCount(reportDefinition, null, null, statuses.toArray(new ReportRequest.Status[0]));
 
-			for (ReportRequest reportRequest : reportRequests) {
-				for (RenderingMode mode :
-						reportService.getRenderingModes(
-								reportRequest.getReportDefinition().getParameterizable())) {
-					if (OpenmrsUtil.nullSafeEquals(mode, reportRequest.getRenderingMode())) {
-						reportRequest.setRenderingMode(mode);
-					}
+		String sortByParameter = context.getParameter("sortBy");
+		if (StringUtils.isBlank(sortByParameter) || "priority".equals(sortByParameter)) {
+			Collections.sort(reportRequests, new ReportRequest.PriorityComparator());
+			Collections.reverse(reportRequests);
+		} else if("name".equals(sortByParameter)) {
+			Collections.sort(reportRequests, new Comparator<ReportRequest>() {
+				@Override
+				public int compare(ReportRequest left, ReportRequest right) {
+					return left
+							.getReportDefinition()
+							.getParameterizable()
+							.getName()
+							.compareTo(right.getReportDefinition().getParameterizable().getName());
+				}
+			});
+		}
+
+		for (ReportRequest reportRequest : reportRequests) {
+			for (RenderingMode mode :
+					reportService.getRenderingModes(
+							reportRequest.getReportDefinition().getParameterizable())) {
+				if (OpenmrsUtil.nullSafeEquals(mode, reportRequest.getRenderingMode())) {
+					reportRequest.setRenderingMode(mode);
 				}
 			}
-
-			return new AlreadyPaged<ReportRequest>(context, reportRequests, reportRequestsTotalCount > (long) pageNumber * pageSize, reportRequestsTotalCount);
 		}
 
-		String reportDefinitionParam = context.getParameter("reportDefinition");
-		if (StringUtils.isEmpty(reportDefinitionParam)) {
-			throw new IllegalArgumentException("reportDefinition is required");
-		}
-
-		ReportDefinition reportDefinition = DefinitionContext.getDefinitionByUuid(ReportDefinition.class, reportDefinitionParam);
-		if (reportDefinition == null) {
-			throw new NullPointerException("Cannot find reportDefinition=" + reportDefinitionParam);
-		}
-
-		List<ReportRequest> reportRequests = getService().getReportRequests(reportDefinition, null, null);
-		return new AlreadyPaged<ReportRequest>(context, reportRequests, false);
+		return new AlreadyPaged<ReportRequest>(context, reportRequests, reportRequestsTotalCount > (long) pageNumber * pageSize, reportRequestsTotalCount);
 	}
 
-	private List<ReportRequest.Status> collectAppropriateStatuses(String commaSeparatedStatuses) {
+	private List<ReportRequest.Status> findAppropriateStatuses(RequestContext context) {
 		List<ReportRequest.Status> reportRequestStatusList = new ArrayList<ReportRequest.Status>();
+		String commaSeparatedStatusesParam = context.getParameter("status");
+		if (StringUtils.isBlank(commaSeparatedStatusesParam)) {
+			return reportRequestStatusList;
+		}
 
-		String[] splitStatuses = commaSeparatedStatuses.split(",");
+		String[] splitStatuses = commaSeparatedStatusesParam.split(",");
 		for (String status : splitStatuses) {
 			if ("ran".equalsIgnoreCase(status)) {
 				Collections.addAll(reportRequestStatusList,
@@ -153,6 +144,16 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		}
 
 		return reportRequestStatusList;
+	}
+
+	private ReportDefinition findReportDefinition(RequestContext context) {
+		ReportDefinition reportDefinition = null;
+		String reportDefinitionParam = context.getParameter("reportDefinition");
+		if (reportDefinitionParam != null) {
+			reportDefinition = DefinitionContext.getDefinitionByUuid(ReportDefinition.class, reportDefinitionParam);
+		}
+
+		return reportDefinition;
 	}
 
 	/**
