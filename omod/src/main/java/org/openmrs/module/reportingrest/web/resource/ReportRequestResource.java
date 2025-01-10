@@ -19,9 +19,11 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
+import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.evaluation.parameter.Parameterizable;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
+import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
@@ -29,6 +31,7 @@ import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
+import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
@@ -45,6 +48,7 @@ import org.openmrs.util.OpenmrsUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +72,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	 */
 	@Override
 	public ReportRequest getByUniqueId(String uuid) {
-		return getService().getReportRequestByUuid(uuid);
+		return getReportService().getReportRequestByUuid(uuid);
 	}
 
 
@@ -77,7 +81,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		List<ReportRequest.Status> statuses = findAppropriateStatuses(context);
 		ReportDefinition reportDefinition = findReportDefinition(context);
 
-		ReportService reportService = getService();
+		ReportService reportService = getReportService();
 		Integer pageNumber = context.getStartIndex();
 		Integer pageSize = context.getLimit();
 		List<ReportRequest> reportRequests =
@@ -125,22 +129,8 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 
 		String[] splitStatuses = commaSeparatedStatusesParam.split(",");
 		for (String status : splitStatuses) {
-			if ("ran".equalsIgnoreCase(status)) {
-				Collections.addAll(reportRequestStatusList,
-						ReportRequest.Status.REQUESTED,
-						ReportRequest.Status.COMPLETED,
-						ReportRequest.Status.SAVED,
-						ReportRequest.Status.FAILED,
-						ReportRequest.Status.PROCESSING);
-			} else if ("processing".equalsIgnoreCase(status)) {
-				Collections.addAll(reportRequestStatusList,
-						ReportRequest.Status.REQUESTED,
-						ReportRequest.Status.PROCESSING);
-			} else if ("scheduled".equalsIgnoreCase(status)) {
-				Collections.addAll(reportRequestStatusList,
-						ReportRequest.Status.SCHEDULED,
-						ReportRequest.Status.SCHEDULE_COMPLETED);
-			}
+			String trimmed = status.trim().toUpperCase();
+			reportRequestStatusList.add(ReportRequest.Status.valueOf(trimmed));
 		}
 
 		return reportRequestStatusList;
@@ -160,13 +150,53 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	 * @see org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler#save(java.lang.Object)
 	 */
 	@Override
-    public ReportRequest save(ReportRequest reportRequest) {
-		ReportService reportService = getService();
-		if (reportService.getReportRequestByUuid(reportRequest.getUuid()) == null) {
-			return reportService.queueReport(reportRequest);
-		} else {
-			return reportService.saveReportRequest(reportRequest);
+	public ReportRequest save(ReportRequest reportRequestParam) {
+		ReportDefinition reportDefinition = Context.getService(ReportDefinitionService.class)
+				.getDefinitionByUuid(reportRequestParam.getReportDefinition().getParameterizable().getUuid());
+
+		ReportService reportService = getReportService();
+		Map<String, Object> parameterValues = buildParametersMap(reportDefinition, reportRequestParam);
+		RenderingMode renderingMode = findRenderingMode(reportDefinition, reportRequestParam, reportService);
+
+		ReportRequest reportRequest = reportService.getReportRequestByUuid(reportRequestParam.getUuid());
+		if (reportRequest == null) {
+			reportRequest = new ReportRequest();
 		}
+
+		reportRequest.setReportDefinition(new Mapped<ReportDefinition>(reportDefinition, parameterValues));
+		reportRequest.setRenderingMode(renderingMode);
+		reportRequest.setPriority(ReportRequest.Priority.NORMAL);
+		reportRequest.setSchedule(reportRequestParam.getSchedule());
+
+		reportService.queueReport(reportRequest);
+		reportService.processNextQueuedReports();
+
+		return reportRequest;
+	}
+
+	private Map<String, Object> buildParametersMap(ReportDefinition reportDefinition, ReportRequest reportRequest) {
+		Map<String, Object> parameterValues = new HashMap<String, Object>();
+		for (Parameter parameter : reportDefinition.getParameters()) {
+			Object convertedObj =
+					ConversionUtil.convert(reportRequest.getReportDefinition().getParameterMappings().get(parameter.getName()), parameter.getType());
+			parameterValues.put(parameter.getName(), convertedObj);
+		}
+
+		return parameterValues;
+	}
+
+	private RenderingMode findRenderingMode(ReportDefinition reportDefinition, ReportRequest reportRequest,
+																					ReportService reportService) {
+		List<RenderingMode> renderingModes = reportService.getRenderingModes(reportDefinition);
+		RenderingMode renderingMode = null;
+		for (RenderingMode mode : renderingModes) {
+			if (StringUtils.equals(mode.getArgument(), reportRequest.getRenderingMode().getArgument())) {
+				renderingMode = mode;
+				break;
+			}
+		}
+
+		return renderingMode;
 	}
 
 	/**
@@ -207,7 +237,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	@Override
 	public void purge(ReportRequest reportRequest, RequestContext context) throws ResponseException {
 		if (reportRequest != null) {
-			getService().purgeReportRequest(reportRequest);
+			getReportService().purgeReportRequest(reportRequest);
 		}
 	}
 
@@ -216,67 +246,37 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	 */
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
-		DelegatingResourceDescription description = null;
+		if (rep instanceof CustomRepresentation) {
+			return null;
+		}
+
+		DelegatingResourceDescription description = new DelegatingResourceDescription();
+		description.addProperty("uuid");
+		description.addProperty("parameterizable", "reportDefinition.parameterizable",
+				Representation.DEFAULT);
+		description.addProperty("parameterMappings", "reportDefinition.parameterMappings",
+				Representation.DEFAULT);
+		description.addProperty("renderingMode");
+		description.addProperty("priority");
+		description.addProperty("schedule");
+		description.addProperty("requestDate");
+		description.addProperty("status");
+		description.addProperty("evaluateStartDatetime");
+		description.addProperty("evaluateCompleteDatetime");
+		description.addProperty("renderCompleteDatetime");
+		description.addProperty("description");
+		description.addSelfLink();
+
 		if (rep instanceof DefaultRepresentation) {
-			description = new DelegatingResourceDescription();
-			description.addProperty("uuid");
-			//description.addProperty("baseCohort", Representation.DEFAULT);  TODO: Figure out how to support this
-			description.addProperty("parameterizable", "reportDefinition.parameterizable",
-					Representation.DEFAULT);
-			description.addProperty("parameterMappings", "reportDefinition.parameterMappings",
-					Representation.DEFAULT);
-			description.addProperty("renderingMode");
-			description.addProperty("priority");
-			description.addProperty("schedule");
 			description.addProperty("requestedBy", Representation.REF);
-			description.addProperty("requestDate");
-			description.addProperty("status");
-			description.addProperty("evaluateStartDatetime");
-			description.addProperty("evaluateCompleteDatetime");
-			description.addProperty("renderCompleteDatetime");
-			description.addProperty("description");
-			description.addSelfLink();
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (rep instanceof FullRepresentation) {
-			description = new DelegatingResourceDescription();
-			description.addProperty("uuid");
-			//description.addProperty("baseCohort", Representation.DEFAULT);  TODO: Figure out how to support this
-			description.addProperty("parameterizable", "reportDefinition.parameterizable",
-					Representation.DEFAULT);
-			description.addProperty("parameterMappings", "reportDefinition.parameterMappings",
-					Representation.DEFAULT);
-			description.addProperty("renderingMode");
-			description.addProperty("priority");
-			description.addProperty("schedule");
 			description.addProperty("requestedBy", Representation.DEFAULT);
-			description.addProperty("requestDate");
-			description.addProperty("status");
-			description.addProperty("evaluateStartDatetime");
-			description.addProperty("evaluateCompleteDatetime");
-			description.addProperty("renderCompleteDatetime");
-			description.addProperty("description");
-			description.addSelfLink();
 		} else if (rep instanceof RefRepresentation) {
-			description = new DelegatingResourceDescription();
-			description.addProperty("uuid");
-			//description.addProperty("baseCohort", Representation.DEFAULT);  TODO: Figure out how to support this
-			description.addProperty("parameterizable", "reportDefinition.parameterizable",
-					Representation.DEFAULT);
-			description.addProperty("parameterMappings", "reportDefinition.parameterMappings",
-					Representation.DEFAULT);
-			description.addProperty("renderingMode");
-			description.addProperty("priority");
-			description.addProperty("schedule");
 			description.addProperty("requestedBy", Representation.DEFAULT);
-			description.addProperty("requestDate");
-			description.addProperty("status");
-			description.addProperty("evaluateStartDatetime");
-			description.addProperty("evaluateCompleteDatetime");
-			description.addProperty("renderCompleteDatetime");
-			description.addProperty("description");
-			description.addSelfLink();
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		}
+
 		return description;
 	}
 
@@ -317,12 +317,19 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	 */
 	@Override
 	public void setProperty(Object instance, String propertyName, Object value) throws ConversionException {
-		Class<?> definitionClassType = null;
+		Class<?> definitionClassType;
 		try {
 			if (propertyName.equals("reportDefinition")) {
 				definitionClassType = ReportDefinition.class;
 			} else if (propertyName.equals("baseCohort")) {
 				definitionClassType = CohortDefinition.class;
+			}  else if (propertyName.equals("renderingMode")) {
+				Map<String, Object> renderingModeMap = (Map) value;
+				String rendererUuid = (String) renderingModeMap.get("argument");
+				RenderingMode rm = new RenderingMode();
+				rm.setArgument(rendererUuid);
+				PropertyUtils.setProperty(instance, propertyName, rm);
+				return;
 			} else {
 				super.setProperty(instance, propertyName, value);
 				return;
@@ -346,7 +353,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 	/**
 	 * @return the ReportService
 	 */
-	private ReportService getService() {
+	private ReportService getReportService() {
 		return Context.getService(ReportService.class);
 	}
 }

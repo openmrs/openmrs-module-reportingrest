@@ -12,30 +12,23 @@ package org.openmrs.module.reportingrest.web.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
-import org.openmrs.module.reporting.evaluation.parameter.Mapped;
-import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.report.Report;
 import org.openmrs.module.reporting.report.ReportRequest;
-import org.openmrs.module.reporting.report.definition.ReportDefinition;
-import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.ReportFile;
-import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Controller for {@link CohortDefinition}s
@@ -54,54 +47,21 @@ public class ReportingRestController extends MainResourceController {
         return RestConstants.VERSION_1 + REPORTING_REST_NAMESPACE;
     }
 
-    @RequestMapping(value = "/runReport", method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.OK)
-    public void runReport(@RequestBody ReportRequest reportRequestParam) {
-        ReportDefinition reportDefinition = Context.getService(ReportDefinitionService.class)
-            .getDefinitionByUuid(reportRequestParam.getReportDefinition().getParameterizable().getUuid());
-
-        ReportService reportService = getReportService();
-
-        Map<String, Object> parameterValues = new HashMap<String, Object>();
-        for (Parameter parameter : reportDefinition.getParameters()) {
-            Object convertedObj =
-                ConversionUtil.convert(reportRequestParam.getReportDefinition().getParameterMappings().get(parameter.getName()), parameter.getType());
-            parameterValues.put(parameter.getName(), convertedObj);
-        }
-
-        List<RenderingMode> renderingModes = reportService.getRenderingModes(reportDefinition);
-        RenderingMode renderingMode = null;
-        for (RenderingMode mode : renderingModes) {
-            if (StringUtils.equals(mode.getArgument(), reportRequestParam.getRenderingMode().getArgument())) {
-                renderingMode = mode;
-                break;
-            }
-        }
-
-        final ReportRequest reportRequest;
-        if (reportRequestParam.getUuid() != null) {
-            reportRequest = reportService.getReportRequestByUuid(reportRequestParam.getUuid());
-        } else {
-            reportRequest = new ReportRequest();
-        }
-        reportRequest.setReportDefinition(new Mapped<ReportDefinition>(reportDefinition, parameterValues));
-        reportRequest.setRenderingMode(renderingMode);
-        reportRequest.setPriority(ReportRequest.Priority.NORMAL);
-        reportRequest.setSchedule(reportRequestParam.getSchedule());
-
-        reportService.queueReport(reportRequest);
-        reportService.processNextQueuedReports();
-    }
-
     @RequestMapping(value = "/saveReport", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
-    public void saveReport(@RequestParam String reportRequestUuid) {
+    public ResponseEntity<String> saveReport(@RequestParam String reportRequestUuid) {
         ReportService reportService = getReportService();
         ReportRequest reportRequest = reportService.getReportRequestByUuid(reportRequestUuid);
-        if (ReportRequest.Status.COMPLETED.equals(reportRequest.getStatus())) {
-            Report report = reportService.loadReport(reportRequest);
-            reportService.saveReport(report, StringUtils.EMPTY);
+
+        if (!ReportRequest.Status.COMPLETED.equals(reportRequest.getStatus())) {
+            return new ResponseEntity<String>("Cannot save report because status is different than completed",
+                HttpStatus.BAD_REQUEST);
         }
+
+        Report report = reportService.loadReport(reportRequest);
+        reportService.saveReport(report, StringUtils.EMPTY);
+
+        return new ResponseEntity<String>("Report saved successfully", HttpStatus.OK);
     }
 
     @RequestMapping(value = "/downloadReport", method = RequestMethod.GET)

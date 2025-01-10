@@ -19,6 +19,7 @@ import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
+import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
@@ -30,6 +31,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 /**
@@ -58,7 +60,7 @@ public class ReportDesignResource extends DelegatingCrudResource<ReportDesign> {
 
     ReportDefinition reportDefinition = getReportDefinitionService().getDefinitionByUuid(reportDefinitionUuid);
     if (reportDefinition == null) {
-      return new EmptySearchResult();
+      throw new EntityNotFoundException("ReportDefinition not found with uuid: " + reportDefinitionUuid);
     }
 
     List<ReportDesign> reportDesigns = getReportService().getReportDesigns(reportDefinition, null, false);
@@ -77,9 +79,7 @@ public class ReportDesignResource extends DelegatingCrudResource<ReportDesign> {
 
   @Override
   public void purge(ReportDesign reportDesign, RequestContext requestContext) throws ResponseException {
-    if (reportDesign != null) {
       getReportService().purgeReportDesign(reportDesign);
-    }
   }
 
   @Override
@@ -89,28 +89,15 @@ public class ReportDesignResource extends DelegatingCrudResource<ReportDesign> {
 
   @Override
   public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
-    DelegatingResourceDescription description = null;
-
-    if (representation instanceof RefRepresentation) {
-      description = new DelegatingResourceDescription();
-      description.addProperty("uuid");
-      description.addProperty("name");
-      description.addProperty("rendererType");
-      description.addSelfLink();
-    } else if (representation instanceof FullRepresentation) {
-      description = new DelegatingResourceDescription();
-      description.addProperty("uuid");
-      description.addProperty("name");
-      description.addProperty("rendererType");
-      description.addSelfLink();
-      description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
-    } else if (representation instanceof DefaultRepresentation) {
-      description = new DelegatingResourceDescription();
-      description.addProperty("uuid");
-      description.addProperty("name");
-      description.addProperty("rendererType");
-      description.addSelfLink();
+    if (representation instanceof CustomRepresentation) {
+      return null;
     }
+
+    DelegatingResourceDescription description = new DelegatingResourceDescription();
+    description.addProperty("uuid");
+    description.addProperty("name");
+    description.addProperty("rendererType");
+    description.addSelfLink();
 
     return description;
   }
