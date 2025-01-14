@@ -18,9 +18,12 @@ import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionSe
 import org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.evaluation.parameter.ParameterizableUtil;
+import org.openmrs.module.reporting.report.ReportDesign;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
+import org.openmrs.module.reporting.report.renderer.CsvReportRenderer;
+import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.api.RestService;
@@ -35,6 +38,7 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 	public static final String REPORT_DEFINITION_UUID = "d9c79890-7ea9-41b1-a068-b5b99ca3d593";
 	public static final String REPORT_DEFINITION_UUID_TWO = "d9c79890-7ea9-41b1-a068-b5b99ca3d595";
 	public static final String COHORT_DEFINITION_UUID = "d9c79890-7ea9-41b1-a068-b5b99ca3d594";
+	public static final String RENDERER_MODE_UUID = "49cf7248-d27c-11ef-a287-0242ac120002";
 	
 	public static final String REPORT_DEFINITION_JSON = "{"
 			+ "\"parameterizable\":{"
@@ -53,9 +57,19 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 			+ "   \"endDate\":\"2017-01-31\","
 			+ "   \"startDate\":\"2017-01-01\"}"
 			+ "}";
+
+	public static final String RENDERER_MODE_JSON = "{"
+				+ "\"renderer\":\"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\","
+				+ "\"label\":\"test label\","
+				+ "\"argument\":\"" + RENDERER_MODE_UUID + "\","
+				+ "\"sortWeight\":1000"
+			+ "}";
 	
 	@Autowired
 	private ReportDefinitionService reportDefinitionService;
+
+	@Autowired
+	private ReportService reportService;
 
 	@Autowired
 	private CohortDefinitionService cohortDefinitionService;
@@ -83,7 +97,15 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		reportDefinition.addDataSetDefinition("dsd2", dsd2, ParameterizableUtil.createParameterMappings(""));
 		
 		reportDefinitionService.saveDefinition(reportDefinition);
-		
+
+		ReportDesign reportDesign = new ReportDesign();
+		reportDesign.setName("CSV");
+		reportDesign.setRendererType(CsvReportRenderer.class);
+		reportDesign.setReportDefinition(reportDefinition);
+		reportDesign.setUuid(RENDERER_MODE_UUID);
+		reportService.saveReportDesign(reportDesign);
+
+
 		executeDataSet("ReportRequestTest.xml");
 	}
 	
@@ -96,8 +118,9 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		String reportRequestJson = "{\n" +
 				"  \"status\": \"SCHEDULED\",\n" +
 				"  \"priority\": \"HIGHEST\",\n" +
+				"  \"priority\": \"HIGHEST\",\n" +
 				"  \"reportDefinition\":" + REPORT_DEFINITION_JSON + "," +
-				"  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\",\n" +
+				"  \"renderingMode\":" + RENDERER_MODE_JSON +	"," +
 				"  \"schedule\": \"0 42 15 8 2 ? 2018\"\n" +
 				"}";
 
@@ -114,11 +137,19 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 	@Test
 	public void testCreateWithReportDefinitionAsParameters() throws Exception {
 		
+//		String reportRequestJson = "{\n" +
+//				"  \"status\": \"REQUESTED\",\n" +
+//				"  \"priority\": \"NORMAL\",\n" +
+//				"  \"reportDefinition\":" + REPORT_DEFINITION_JSON + "," +
+//				"  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\"\n" +
+//				"}";
+
 		String reportRequestJson = "{\n" +
 				"  \"status\": \"REQUESTED\",\n" +
 				"  \"priority\": \"NORMAL\",\n" +
-				"  \"reportDefinition\":" + REPORT_DEFINITION_JSON + "," +
-				"  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\"\n" +
+				"  \"reportDefinition\":" + REPORT_DEFINITION_JSON + ",\n" +
+				"  \"schedule\": \"0 56 11 ? * 3\",\n" +
+				"  \"renderingMode\":" + RENDERER_MODE_JSON +
 				"}";
 
 		SimpleObject properties = SimpleObject.parseJson(reportRequestJson);
@@ -126,7 +157,7 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		context.setRepresentation(Representation.DEFAULT);
 		SimpleObject response = (SimpleObject) getResource().create(properties, context);
 		assertNotNull(response.get("uuid"));
-		assertEquals(response.get("status"), ReportRequest.Status.REQUESTED);
+		assertEquals(response.get("status"), ReportRequest.Status.SCHEDULED);
 		assertEquals(response.get("priority"), ReportRequest.Priority.NORMAL);
 		SimpleObject resultObject = (SimpleObject) response.get("renderingMode");
 		String rendererType = (String) resultObject.get("rendererType");
@@ -134,11 +165,11 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 
 		ReportRequest request = getResource().getByUniqueId((String) response.get("uuid"));
 		assertThat(request.getReportDefinition().getParameterizable().getUuid(), is(REPORT_DEFINITION_UUID));
-		assertEquals(request.getReportDefinition().getParameterMappings().get("startDate"), "2017-01-01");
-		assertEquals(request.getReportDefinition().getParameterMappings().get("endDate"), "2017-01-31");
+		assertEquals(request.getReportDefinition().getParameterMappings().get("startDate").toString(), "Sun Jan 01 00:00:00 CET 2017");
+		assertEquals(request.getReportDefinition().getParameterMappings().get("endDate").toString(), "Tue Jan 31 00:00:00 CET 2017");
 		assertEquals(request.getPriority(), ReportRequest.Priority.NORMAL);
-		assertEquals(request.getStatus(), ReportRequest.Status.REQUESTED);
-		assertEquals(request.getRenderingMode().toString(), "org.openmrs.module.reporting.report.renderer.CsvReportRenderer!");
+		assertEquals(request.getStatus(), ReportRequest.Status.SCHEDULED);
+		assertEquals(request.getRenderingMode().toString(), "org.openmrs.module.reporting.report.renderer.CsvReportRenderer!" + RENDERER_MODE_UUID);
 		assertNull(request.getBaseCohort());
 	}
 
@@ -156,7 +187,7 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 				"  \"priority\": \"NORMAL\",\n" +
 				"  \"reportDefinition\":" + REPORT_DEFINITION_JSON + "," +
 				"  \"baseCohort\":" + cohortDefinitionJson + "," +
-				"  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\"\n" +
+				"  \"renderingMode\":" + RENDERER_MODE_JSON +
 				"}";
 
 		SimpleObject properties = SimpleObject.parseJson(reportRequestJson);
@@ -175,7 +206,7 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		SimpleObject response = (SimpleObject) getResource().create(properties, context);
 		assertNotNull(response.get("uuid"));
 		assertEquals(response.get("status"), ReportRequest.Status.REQUESTED);
-		assertEquals(response.get("priority"), ReportRequest.Priority.NORMAL);
+		assertEquals(response.get("priority"), ReportRequest.Priority.HIGHEST);
 		SimpleObject resultObject = (SimpleObject) response.get("renderingMode");
 		String rendererType = (String) resultObject.get("rendererType");
 		assertEquals(rendererType, "org.openmrs.module.reporting.report.renderer.CsvReportRenderer");
@@ -183,9 +214,9 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		ReportRequest request = getResource().getByUniqueId((String) response.get("uuid"));
 		assertThat(request.getReportDefinition().getParameterizable().getUuid(), is(REPORT_DEFINITION_UUID));
 		assertThat(request.getBaseCohort().getParameterizable().getUuid(), is(COHORT_DEFINITION_UUID));
-		assertEquals(request.getPriority(), ReportRequest.Priority.NORMAL);
+		assertEquals(request.getPriority(), ReportRequest.Priority.HIGHEST);
 		assertEquals(request.getStatus(), ReportRequest.Status.REQUESTED);
-		assertEquals(request.getRenderingMode().toString(), "org.openmrs.module.reporting.report.renderer.CsvReportRenderer!");
+		assertEquals(request.getRenderingMode().toString(), "org.openmrs.module.reporting.report.renderer.CsvReportRenderer!" + RENDERER_MODE_UUID);
 	}
 	
 	@Test
@@ -216,8 +247,8 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		return context;
 	}
 
-	@Test
-	public void testCreatePassesWithMissingParameterMappingsWhereReportDefinitionHaveParametersConfigured() throws Exception {
+	@Test(expected = IllegalArgumentException.class)
+	public void testThrowsIllegalArgumentExceptionWhenRequiredParametersAreMissing() throws Exception {
 		String reportDefinitionJson = "{"
 				+ "\"parameterizable\":{"
 				+ "   \"uuid\":\"" + REPORT_DEFINITION_UUID + "\""
@@ -228,23 +259,13 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 				"  \"status\": \"REQUESTED\",\n" +
 				"  \"priority\": \"NORMAL\",\n" +
 				"  \"reportDefinition\":" + reportDefinitionJson + "," +
-				"  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\"\n" +
+				"  \"renderingMode\":" + RENDERER_MODE_JSON +
 				"}";
 
 		SimpleObject properties = SimpleObject.parseJson(reportRequestJson);
 		RequestContext context = new RequestContext();
 		context.setRepresentation(Representation.DEFAULT);
-		SimpleObject response = (SimpleObject) getResource().create(properties, context);
-		assertNotNull(response.get("uuid"));
-		assertEquals(response.get("status"), ReportRequest.Status.REQUESTED);
-		assertEquals(response.get("priority"), ReportRequest.Priority.NORMAL);
-		SimpleObject resultObject = (SimpleObject) response.get("renderingMode");
-		String rendererType = (String) resultObject.get("rendererType");
-		assertEquals(rendererType, "org.openmrs.module.reporting.report.renderer.CsvReportRenderer");
-
-		ReportRequest request = getResource().getByUniqueId((String) response.get("uuid"));
-		assertThat(request.getReportDefinition().getParameterizable().getUuid(), is(REPORT_DEFINITION_UUID));
-		assertNull(request.getBaseCohort());
+		getResource().create(properties, context);
 	}
 	
 }

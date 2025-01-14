@@ -164,6 +164,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		}
 
 		reportRequest.setReportDefinition(new Mapped<ReportDefinition>(reportDefinition, parameterValues));
+		reportRequest.setBaseCohort(reportRequestParam.getBaseCohort());
 		reportRequest.setRenderingMode(renderingMode);
 		reportRequest.setPriority(ReportRequest.Priority.NORMAL);
 		reportRequest.setSchedule(reportRequestParam.getSchedule());
@@ -179,6 +180,9 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		for (Parameter parameter : reportDefinition.getParameters()) {
 			Object convertedObj =
 					ConversionUtil.convert(reportRequest.getReportDefinition().getParameterMappings().get(parameter.getName()), parameter.getType());
+			if (parameter.isRequired() && convertedObj == null) {
+				throw new IllegalArgumentException("Parameter " + parameter.getName() + " is required");
+			}
 			parameterValues.put(parameter.getName(), convertedObj);
 		}
 

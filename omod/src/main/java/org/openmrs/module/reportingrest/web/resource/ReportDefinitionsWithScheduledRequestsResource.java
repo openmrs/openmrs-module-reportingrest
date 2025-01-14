@@ -33,9 +33,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-@Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/scheduledReport",
+@Resource(name = RestConstants.VERSION_1 + ReportingRestController.REPORTING_REST_NAMESPACE + "/reportDefinitionsWithScheduledRequests",
     supportedClass = SimpleObject.class, supportedOpenmrsVersions = {"1.8.* - 9.9.*"})
-public class ScheduledReportResource extends DelegatingCrudResource<SimpleObject> {
+public class ReportDefinitionsWithScheduledRequestsResource extends DelegatingCrudResource<SimpleObject> {
 
   @Override
   public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
@@ -95,17 +95,17 @@ public class ScheduledReportResource extends DelegatingCrudResource<SimpleObject
     List<SimpleObject> scheduledReports = new ArrayList<SimpleObject>();
 
     for (ReportDefinition reportDefinition : reportDefinitions) {
-      List<ReportRequest> reportRequests = Context
+      List<ReportRequest> scheduledReportRequests = Context
           .getService(ReportService.class)
           .getReportRequests(reportDefinition, null, null, ReportRequest.Status.SCHEDULED,
               ReportRequest.Status.SCHEDULE_COMPLETED);
 
-      if (reportRequests.isEmpty()) {
+      if (scheduledReportRequests.isEmpty()) {
         scheduledReports.add(new SimpleObject()
             .add("reportDefinition", reportDefinition)
             .add("reportScheduleRequest", null));
       } else {
-        for (ReportRequest reportRequest : reportRequests) {
+        for (ReportRequest reportRequest : scheduledReportRequests) {
           scheduledReports.add(new SimpleObject()
               .add("reportDefinition", reportDefinition)
               .add("reportScheduleRequest", reportRequest));
