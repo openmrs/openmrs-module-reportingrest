@@ -95,22 +95,14 @@ public class ReportDefinitionsWithScheduledRequestsResource extends DelegatingCr
     List<SimpleObject> scheduledReports = new ArrayList<SimpleObject>();
 
     for (ReportDefinition reportDefinition : reportDefinitions) {
-      List<ReportRequest> scheduledReportRequests = Context
+      List<ReportRequest> scheduledRequests = Context
           .getService(ReportService.class)
           .getReportRequests(reportDefinition, null, null, ReportRequest.Status.SCHEDULED,
               ReportRequest.Status.SCHEDULE_COMPLETED);
 
-      if (scheduledReportRequests.isEmpty()) {
-        scheduledReports.add(new SimpleObject()
-            .add("reportDefinition", reportDefinition)
-            .add("reportScheduleRequest", null));
-      } else {
-        for (ReportRequest reportRequest : scheduledReportRequests) {
-          scheduledReports.add(new SimpleObject()
-              .add("reportDefinition", reportDefinition)
-              .add("reportScheduleRequest", reportRequest));
-        }
-      }
+      scheduledReports.add(new SimpleObject()
+          .add("reportDefinition", reportDefinition)
+          .add("scheduledRequests", scheduledRequests));
     }
 
     return scheduledReports;
