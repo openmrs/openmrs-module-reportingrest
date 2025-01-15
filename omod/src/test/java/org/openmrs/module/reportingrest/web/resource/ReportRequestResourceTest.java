@@ -2,14 +2,14 @@ package org.openmrs.module.reportingrest.web.resource;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-
-import java.util.Date;
-import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-
+import java.util.Date;
+import java.util.List;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
@@ -129,21 +129,12 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		context.setRepresentation(Representation.DEFAULT);
 		SimpleObject response = (SimpleObject) getResource().create(properties, context);
 		assertNotNull(response.get("uuid"));
-		assertEquals(response.get("status"), ReportRequest.Status.SCHEDULED);
-		assertEquals(response.get("schedule"), "0 42 15 8 2 ? 2018");
-		SimpleObject resultObject = (SimpleObject) response.get("renderingMode");
+		assertEquals(ReportRequest.Status.SCHEDULED, response.get("status"));
+		assertEquals("0 42 15 8 2 ? 2018", response.get("schedule"));
 	}
 
 	@Test
 	public void testCreateWithReportDefinitionAsParameters() throws Exception {
-		
-//		String reportRequestJson = "{\n" +
-//				"  \"status\": \"REQUESTED\",\n" +
-//				"  \"priority\": \"NORMAL\",\n" +
-//				"  \"reportDefinition\":" + REPORT_DEFINITION_JSON + "," +
-//				"  \"renderingMode\": \"org.openmrs.module.reporting.report.renderer.CsvReportRenderer\"\n" +
-//				"}";
-
 		String reportRequestJson = "{\n" +
 				"  \"status\": \"REQUESTED\",\n" +
 				"  \"priority\": \"NORMAL\",\n" +
@@ -157,25 +148,25 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		context.setRepresentation(Representation.DEFAULT);
 		SimpleObject response = (SimpleObject) getResource().create(properties, context);
 		assertNotNull(response.get("uuid"));
-		assertEquals(response.get("status"), ReportRequest.Status.SCHEDULED);
-		assertEquals(response.get("priority"), ReportRequest.Priority.NORMAL);
+		assertEquals(ReportRequest.Status.SCHEDULED, response.get("status"));
+		assertEquals(ReportRequest.Priority.NORMAL, response.get("priority"));
 		SimpleObject resultObject = (SimpleObject) response.get("renderingMode");
 		String rendererType = (String) resultObject.get("rendererType");
-		assertEquals(rendererType, "org.openmrs.module.reporting.report.renderer.CsvReportRenderer");
+		assertEquals("org.openmrs.module.reporting.report.renderer.CsvReportRenderer", rendererType);
 
 		ReportRequest request = getResource().getByUniqueId((String) response.get("uuid"));
 		assertThat(request.getReportDefinition().getParameterizable().getUuid(), is(REPORT_DEFINITION_UUID));
-		assertEquals(request.getReportDefinition().getParameterMappings().get("startDate").toString(), "Sun Jan 01 00:00:00 CET 2017");
-		assertEquals(request.getReportDefinition().getParameterMappings().get("endDate").toString(), "Tue Jan 31 00:00:00 CET 2017");
-		assertEquals(request.getPriority(), ReportRequest.Priority.NORMAL);
-		assertEquals(request.getStatus(), ReportRequest.Status.SCHEDULED);
-		assertEquals(request.getRenderingMode().toString(), "org.openmrs.module.reporting.report.renderer.CsvReportRenderer!" + RENDERER_MODE_UUID);
+		assertEquals(LocalDate.parse("2017-01-01"), convertDateParamToLocalDate("startDate", request));
+		assertEquals(LocalDate.parse("2017-01-31"), convertDateParamToLocalDate("endDate", request));
+		assertEquals(ReportRequest.Priority.NORMAL, request.getPriority());
+		assertEquals(ReportRequest.Status.SCHEDULED, request.getStatus());
+		assertEquals("org.openmrs.module.reporting.report.renderer.CsvReportRenderer!" + RENDERER_MODE_UUID,
+				request.getRenderingMode().toString());
 		assertNull(request.getBaseCohort());
 	}
 
 	@Test
 	public void testCreateWithReportDefinitionAndBaseCohortAsParameters() throws Exception {
-		
 		String cohortDefinitionJson = "{"
 				+ "\"parameterizable\":{"
 				+ "   \"uuid\":\"" + COHORT_DEFINITION_UUID + "\""
@@ -205,18 +196,19 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 
 		SimpleObject response = (SimpleObject) getResource().create(properties, context);
 		assertNotNull(response.get("uuid"));
-		assertEquals(response.get("status"), ReportRequest.Status.REQUESTED);
-		assertEquals(response.get("priority"), ReportRequest.Priority.HIGHEST);
+		assertEquals(ReportRequest.Status.REQUESTED, response.get("status"));
+		assertEquals(ReportRequest.Priority.HIGHEST, response.get("priority"));
 		SimpleObject resultObject = (SimpleObject) response.get("renderingMode");
 		String rendererType = (String) resultObject.get("rendererType");
-		assertEquals(rendererType, "org.openmrs.module.reporting.report.renderer.CsvReportRenderer");
+		assertEquals("org.openmrs.module.reporting.report.renderer.CsvReportRenderer", rendererType);
 
 		ReportRequest request = getResource().getByUniqueId((String) response.get("uuid"));
 		assertThat(request.getReportDefinition().getParameterizable().getUuid(), is(REPORT_DEFINITION_UUID));
 		assertThat(request.getBaseCohort().getParameterizable().getUuid(), is(COHORT_DEFINITION_UUID));
-		assertEquals(request.getPriority(), ReportRequest.Priority.HIGHEST);
-		assertEquals(request.getStatus(), ReportRequest.Status.REQUESTED);
-		assertEquals(request.getRenderingMode().toString(), "org.openmrs.module.reporting.report.renderer.CsvReportRenderer!" + RENDERER_MODE_UUID);
+		assertEquals(ReportRequest.Priority.HIGHEST, request.getPriority());
+		assertEquals(ReportRequest.Status.REQUESTED, request.getStatus());
+		assertEquals("org.openmrs.module.reporting.report.renderer.CsvReportRenderer!" + RENDERER_MODE_UUID,
+				request.getRenderingMode().toString());
 	}
 	
 	@Test
@@ -267,5 +259,10 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		context.setRepresentation(Representation.DEFAULT);
 		getResource().create(properties, context);
 	}
-	
+
+	private LocalDate convertDateParamToLocalDate(String dateParamName, ReportRequest request) {
+		Date date = (Date) request.getReportDefinition().getParameterMappings().get(dateParamName);
+		DateTime dateTime = new DateTime(date);
+		return dateTime.toLocalDate();
+	}
 }
