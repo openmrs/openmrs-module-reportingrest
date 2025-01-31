@@ -85,7 +85,7 @@ public class ReportRequestResource extends DelegatingCrudResource<ReportRequest>
 		Integer pageNumber = context.getStartIndex();
 		Integer pageSize = context.getLimit();
 		List<ReportRequest> reportRequests =
-				reportService.getReportRequests(reportDefinition, null, null, pageNumber - 1, pageNumber * pageSize,
+				reportService.getReportRequests(reportDefinition, null, null, (pageNumber - 1) * pageSize, pageSize,
 						statuses.toArray(new ReportRequest.Status[0]));
 		long reportRequestsTotalCount =
 				reportService.getReportRequestsCount(reportDefinition, null, null, statuses.toArray(new ReportRequest.Status[0]));
