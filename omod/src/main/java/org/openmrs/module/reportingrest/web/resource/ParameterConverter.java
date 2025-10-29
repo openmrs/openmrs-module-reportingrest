@@ -32,6 +32,7 @@ public class ParameterConverter implements Converter<Parameter> {
 		paramMap.put("name", param.getName());
 		paramMap.put("label", param.getLabel());
 		paramMap.put("type", param.getType().getName());
+        paramMap.put("required",  param.isRequired());
 		
 		return paramMap;
 	}
