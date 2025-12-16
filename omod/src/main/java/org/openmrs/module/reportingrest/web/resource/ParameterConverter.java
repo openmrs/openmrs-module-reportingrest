@@ -1,14 +1,8 @@
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.openmrs.annotation.Handler;
-import org.openmrs.module.reporting.dataset.DataSetColumn;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
@@ -25,33 +19,26 @@ public class ParameterConverter implements Converter<Parameter> {
 	}
 
 	@Override
-	public SimpleObject asRepresentation(Parameter param, Representation rep)
-			throws ConversionException {
+	public SimpleObject asRepresentation(Parameter param, Representation rep) throws ConversionException {
 		// convert into a map
 		SimpleObject paramMap = new SimpleObject();
 		paramMap.put("name", param.getName());
 		paramMap.put("label", param.getLabel());
 		paramMap.put("type", param.getType().getName());
         paramMap.put("required",  param.isRequired());
-		
-		return paramMap;
+        paramMap.put("display", Context.getMessageSourceService().getMessage(param.getLabelOrName()));
+
+        return paramMap;
 	}
 
 	@Override
-	public Object getProperty(Parameter param, String propertyName)
-			throws ConversionException {
+	public Object getProperty(Parameter param, String propertyName) throws ConversionException {
 		try {
 			return PropertyUtils.getProperty(param, propertyName);
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
 		}
-		
-		// fail
-		return null;
+		catch (Exception e) {
+			throw new ConversionException(e);
+		}
 	}
 
 	/**

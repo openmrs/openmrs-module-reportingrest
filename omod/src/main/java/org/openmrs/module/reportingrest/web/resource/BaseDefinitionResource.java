@@ -13,10 +13,13 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import org.apache.commons.lang.StringUtils;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.Definition;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -98,7 +101,9 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 			description = new DelegatingResourceDescription();
 			description.addProperty("uuid");
 			description.addProperty("name");
+			description.addProperty("display");
 			description.addProperty("description");
+			description.addProperty("descriptionDisplay");
 			description.addProperty("parameters");
 			description.addSelfLink();
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
@@ -107,11 +112,28 @@ public abstract class BaseDefinitionResource<T extends Definition> extends Metad
 			description = new DelegatingResourceDescription();
 			description.addProperty("uuid");
 			description.addProperty("name");
+			description.addProperty("display");
 			description.addProperty("description");
+			description.addProperty("descriptionDisplay");
 			description.addProperty("parameters");
 			description.addSelfLink();
 		}
 		return description;
+	}
+
+	@Override
+	@PropertyGetter("display")
+	public String getDisplayString(T delegate) {
+		String display = Context.getMessageSourceService().getMessage(delegate.getName());
+		if (StringUtils.isBlank(display) || display.equals(delegate.getName())) {
+			display = super.getDisplayString(delegate);
+		}
+		return display;
+	}
+
+	@PropertyGetter("descriptionDisplay")
+	public String getDescriptionDisplay(T delegate) {
+		return Context.getMessageSourceService().getMessage(delegate.getDescription());
 	}
 	
 	/**
