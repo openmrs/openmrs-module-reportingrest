@@ -94,6 +94,7 @@ public class ReportDesignResource extends DelegatingCrudResource<ReportDesign> {
     description.addProperty("uuid");
     description.addProperty("name");
     description.addProperty("rendererType");
+    description.addProperty("display");
     description.addSelfLink();
 
     return description;
