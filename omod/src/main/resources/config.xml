@@ -2,24 +2,19 @@
 <module configVersion="1.2">
 	
 	<!-- Base Module Properties -->
-	<id>@MODULE_ID@</id>
-	<name>@MODULE_NAME@</name>
-	<version>@MODULE_VERSION@</version>
-	<package>@MODULE_PACKAGE@</package>
+	<id>${project.parent.artifactId}</id>
+	<name>${project.parent.name}</name>
+	<version>${project.parent.version}</version>
+	<package>${project.parent.groupId}.${project.parent.artifactId}</package>
 	<author>Partners In Health</author>
 	<description>RESTful Web Services for the reporting module</description>
-	<activator>@MODULE_PACKAGE@.ModuleActivator</activator>
-	<require_version>1.11.3, 1.10.2 - 1.10.*, 1.9.9 - 1.9.*</require_version>
+	<activator>${project.parent.groupId}.${project.parent.artifactId}.ModuleActivator</activator>
+	<require_version>${openMRSVersion}</require_version>
 	
 	<require_modules>
 	   	<require_module version="${serializationxstreamVersion}">org.openmrs.module.serialization.xstream</require_module>
 	   	<require_module version="${reportingVersion}">org.openmrs.module.reporting</require_module>
 	   	<require_module version="${webservicesRestVersion}">org.openmrs.module.webservices.rest</require_module>
 	</require_modules>
-
-	<messages>
-		<lang>en</lang>
-		<file>messages.properties</file>
-	</messages>
 	
 </module>

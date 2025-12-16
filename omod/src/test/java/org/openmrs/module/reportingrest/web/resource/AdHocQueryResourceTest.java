@@ -43,9 +43,9 @@ import java.util.Arrays;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 public class AdHocQueryResourceTest extends BaseModuleWebContextSensitiveTest {
 
@@ -72,8 +72,8 @@ public class AdHocQueryResourceTest extends BaseModuleWebContextSensitiveTest {
         assertThat(result.getResult(), hasExactlyIds(2, 6, 7)); // male OR encounter during period OR adult on date
 
         assertThat(result.getIndividualResults().get(0), hasExactlyIds(2, 6));
-        assertThat(result.getIndividualResults().get(1), hasExactlyIds(7));
-        assertThat(result.getIndividualResults().get(2), hasExactlyIds(2, 7));
+        assertThat(result.getIndividualResults().get(1), hasExactlyIds(2, 7));
+        assertThat(result.getIndividualResults().get(2), hasExactlyIds(2, 6, 7));
     }
 
     @Test

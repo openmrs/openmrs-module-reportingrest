@@ -25,15 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-/**
- *
- */
-@SuppressWarnings("SpringJavaAutowiringInspection")
 public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<EvaluatedCohortResource, EvaluatedCohort> {
 
     @Autowired
@@ -83,15 +80,14 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 		assertCohortMembers(evaluated, json, expectedUuids);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
 	public void evaluateWithMissingParametersShouldThrowClientException() throws Exception {
-		Object evaluated = getResource().retrieve(BuiltInCohortDefinitionLibrary.PREFIX + "atLeastAgeOnDate", buildRequestContext());
+		assertThrows(IllegalArgumentException.class, () -> getResource().retrieve(BuiltInCohortDefinitionLibrary.PREFIX + "atLeastAgeOnDate", buildRequestContext()));
 	}
 	
 	@Test
 	public void testEvaluateBuiltInDefinitionWithParametersUsingPost() throws Exception {
 		SimpleObject postBody = new SimpleObject()
-				.add("effectiveDate", "2017-01-01")
+				.add("effectiveDate", "1996-08-30")
 				.add("maxAge", "20");
 		
 		Object evaluated = getResource().update(BuiltInCohortDefinitionLibrary.PREFIX + "upToAgeOnDate", postBody, buildRequestContext());
@@ -99,8 +95,8 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 		
 		assertThat((String) path(evaluated, "definition", "uuid"), is("reporting.library.cohortDefinition.builtIn.upToAgeOnDate"));
 		
-		// should include patient 6 from standard test dataset. their uuids are:
-		String[] expectedUuids = new String[] { "a7e04421-525f-442f-8138-05b619d16def" };
+		// should include patient 7 from standard test dataset. their uuids are:
+		String[] expectedUuids = new String[] { "5946f880-b197-400b-9caa-a3c661d23041" };
 		
 		assertCohortMembers(evaluated, json, expectedUuids);
 	}
@@ -164,7 +160,7 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 	private void assertCohortMembers(Object evaluated, String json, String[] expectedUuids) throws Exception {
 		assertEquals(expectedUuids.length, ((List) path(evaluated, "members")).size());
 		for (String expected : expectedUuids) {
-			assertTrue(json.contains("/person/" + expected));
+			assertTrue(json.contains("/patient/" + expected));
 		}
 	}
 

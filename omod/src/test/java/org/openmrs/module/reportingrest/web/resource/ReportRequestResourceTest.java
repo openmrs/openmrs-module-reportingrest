@@ -1,13 +1,5 @@
 package org.openmrs.module.reportingrest.web.resource;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.Date;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.junit.Before;
@@ -31,6 +23,16 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
+
+import java.util.Date;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest {
 	
@@ -239,7 +241,7 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		return context;
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testThrowsIllegalArgumentExceptionWhenRequiredParametersAreMissing() throws Exception {
 		String reportDefinitionJson = "{"
 				+ "\"parameterizable\":{"
@@ -257,7 +259,7 @@ public class ReportRequestResourceTest extends BaseModuleWebContextSensitiveTest
 		SimpleObject properties = SimpleObject.parseJson(reportRequestJson);
 		RequestContext context = new RequestContext();
 		context.setRepresentation(Representation.DEFAULT);
-		getResource().create(properties, context);
+		assertThrows(IllegalArgumentException.class, () -> getResource().create(properties, context));
 	}
 
 	private LocalDate convertDateParamToLocalDate(String dateParamName, ReportRequest request) {
