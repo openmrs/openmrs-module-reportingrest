@@ -11,8 +11,6 @@
            http://www.springframework.org/schema/util
            http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
-	<context:component-scan base-package="@MODULE_PACKAGE@" />
-
 	<bean id="deleteOldAdHocReportDefinitionsTask" class="org.openmrs.module.reporting.report.task.ReportingTimerTask">
 		<property name="taskClass" value="org.openmrs.module.reportingrest.adhoc.task.DeleteOldOldAdHocReportDefinitionsTask"/>
 		<property name="sessionFactory" ref="dbSessionFactory"/>

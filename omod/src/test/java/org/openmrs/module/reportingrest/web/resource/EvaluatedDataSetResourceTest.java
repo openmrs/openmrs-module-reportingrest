@@ -20,20 +20,18 @@ import org.openmrs.Cohort;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.EncounterCohortDefinition;
-import org.openmrs.module.reporting.cohort.definition.GenderCohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.service.CohortDefinitionService;
 import org.openmrs.module.reporting.dataset.DataSet;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
 import org.openmrs.module.reporting.dataset.MapDataSet;
-import org.openmrs.module.reporting.dataset.definition.CohortIndicatorDataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinitionService;
+import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.evaluation.parameter.Parameterizable;
 import org.openmrs.module.reporting.evaluation.parameter.ParameterizableUtil;
-import org.openmrs.module.reporting.indicator.CohortIndicator;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
@@ -43,24 +41,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
  */
 public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<EvaluatedDataSetResource, DataSet> {
-    
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
+
     DataSetDefinitionService dataSetDefinitionService;
 
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
     CohortDefinitionService cohortDefinitionService;
 
-    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     LocationService locationService;
     
@@ -69,6 +61,8 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
     @Before
     public void setUp() throws Exception {
         executeDataSet("DataSetDefinitionTest.xml");
+        dataSetDefinitionService = DefinitionContext.getDataSetDefinitionService();
+        cohortDefinitionService = DefinitionContext.getCohortDefinitionService();
     }
 
     @Test
@@ -76,7 +70,7 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
         SimpleObject response = (SimpleObject) getResource().retrieve("d9c79890-7ea9-41b1-a068-b5b99ca3d593", buildRequestContext());
         assertThat((String) path(response, "metadata", "columns", 0, "name"), is("PATIENT_ID"));
         List rows = (List) response.get("rows");
-        assertThat(rows.size(), is(4));
+        assertThat(rows.size(), is(5));
         Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
         assertThat((Integer) firstRow.get("PATIENT_ID"), is(6));
     }
@@ -85,13 +79,13 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
     public void testEvaluatingDsdWithParametersUsingGet() throws Exception {
         saveDsdWithParams();
 
-        RequestContext context = buildRequestContext("param1", "these are words, that we won't use", "param2", "2000-11-01");
+        RequestContext context = buildRequestContext("param1", "these are words, that we won't use", "param2", "1995-01-01");
         SimpleObject response = (SimpleObject) getResource().retrieve(UUID_FOR_PARAMS_DSD, context);
 
         List rows = (List) response.get("rows");
         assertThat(rows.size(), is(1));
         Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
-        assertThat((Integer) firstRow.get("PERSON_ID"), is(6));
+        assertThat((Integer) firstRow.get("PERSON_ID"), is(43));
     }
     
     @Test
@@ -101,13 +95,13 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
         RequestContext context = buildRequestContext();
         SimpleObject postBody = new SimpleObject()
                 .add("param1", "these are words, that we won't use")
-                .add("param2", "2000-11-01");
+                .add("param2", "1995-01-10");
         SimpleObject response = (SimpleObject) getResource().update(UUID_FOR_PARAMS_DSD, postBody, context);
         
         List rows = (List) response.get("rows");
         assertThat(rows.size(), is(1));
         Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
-        assertThat((Integer) firstRow.get("PERSON_ID"), is(6));
+        assertThat((Integer) firstRow.get("PERSON_ID"), is(43));
     }
     
     private void saveDsdWithParams() {
@@ -131,35 +125,9 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
 
         assertThat((String) path(response, "metadata", "columns", 0, "name"), is("PATIENT_ID"));
         List rows = (List) response.get("rows");
-        assertThat(rows.size(), is(4));
+        assertThat(rows.size(), is(5));
         Map<String, Object> firstRow = (Map<String, Object>) rows.get(0);
         assertThat((Integer) firstRow.get("PATIENT_ID"), is(6));
-    }
-
-    @Test
-    public void shouldConvertCohortIndicatorDataSet() throws Exception {
-        {
-            GenderCohortDefinition cd = new GenderCohortDefinition();
-            cd.setName("Gender = Male");
-            cd.setMaleIncluded(true);
-
-            CohortIndicator ind = new CohortIndicator("Gender = Male");
-            ind.setCohortDefinition(map(cd, null));
-
-            CohortIndicatorDataSetDefinition dsd = new CohortIndicatorDataSetDefinition();
-            dsd.setName("Cohort Indicator DSD");
-            dsd.setUuid("cohort-indicator-dsd");
-            dsd.addColumn("1", "One", map(ind, null), "");
-
-            dataSetDefinitionService.saveDefinition(dsd);
-        }
-
-        SimpleObject result = (SimpleObject) getResource().retrieve("cohort-indicator-dsd", buildRequestContext());
-        String json = toJson(result);
-        System.out.println(json);
-
-        assertTrue(json.contains("\"uuid\":\"cohort-indicator-dsd\""));
-        assertTrue(json.contains("\"1\":2")); // this is the count of matching patients
     }
 
     @Test

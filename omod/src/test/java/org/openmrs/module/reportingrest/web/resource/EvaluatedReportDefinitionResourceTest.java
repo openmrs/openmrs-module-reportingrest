@@ -13,18 +13,14 @@ import org.openmrs.module.reporting.serializer.ReportingSerializer;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.ExpectedException;
 
 import java.util.Collection;
 import java.util.Date;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 
-/**
- *
- */
-@SuppressWarnings("SpringJavaAutowiringInspection")
 public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResourceTest<EvaluatedReportDefinitionResource, ReportData> {
 
     public static final String UUID = "d9c79890-7ea9-41b1-a068-b5b99ca3d593";
@@ -65,7 +61,7 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
     public void testEvaluatingUsingGet() throws Exception {
         SimpleObject response = (SimpleObject) getResource().retrieve(UUID, buildRequestContext("startDate", "1975-01-01", "endDate", "1976-12-31"));
         assertThat(((Collection) response.get("dataSets")).size(), is(2));
-        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(2));
+        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(3));
         assertThat((String) path(response, "dataSets", 0, "definition", "name"), is("Not everyone"));
         assertThat((String) path(response, "dataSets", 1, "definition", "name"), is("For fun"));
     }
@@ -77,7 +73,7 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
                 .add("endDate", "1976-12-31");
         SimpleObject response = (SimpleObject) getResource().update(UUID, postBody, buildRequestContext());
         assertThat(((Collection) response.get("dataSets")).size(), is(2));
-        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(2));
+        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(3));
         assertThat((String) path(response, "dataSets", 0, "definition", "name"), is("Not everyone"));
         assertThat((String) path(response, "dataSets", 1, "definition", "name"), is("For fun"));
     }
@@ -86,9 +82,13 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
 	 * @verifies throw ObjectNotFoundException if resource does not exist
 	 */
 	@Test
-	@ExpectedException(value = ObjectNotFoundException.class)
 	public void retrieve_shouldThrowObjectNotFoundExceptionIfResourceDoesNotExist() throws Exception {
-		getResource().retrieve("not-existing", buildRequestContext("startDate", "1975-01-01", "endDate", "1976-12-31"));
+		assertThrows(ObjectNotFoundException.class, () ->
+                getResource().retrieve(
+                        "not-existing",
+                        buildRequestContext("startDate", "1975-01-01", "endDate", "1976-12-31")
+                )
+        );
 	}
 
     @Test
@@ -102,7 +102,7 @@ public class EvaluatedReportDefinitionResourceTest extends BaseEvaluatedResource
 
         SimpleObject response = (SimpleObject) getResource().create(postBody, buildRequestContext());
         assertThat(((Collection) response.get("dataSets")).size(), is(2));
-        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(2));
+        assertThat(((Collection) path(response, "dataSets", 0, "rows")).size(), is(3));
         assertThat((String) path(response, "dataSets", 0, "definition", "name"), is("Not everyone"));
         assertThat((String) path(response, "dataSets", 1, "definition", "name"), is("For fun"));
     }

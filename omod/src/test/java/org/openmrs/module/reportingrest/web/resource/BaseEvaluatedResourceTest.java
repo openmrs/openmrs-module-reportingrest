@@ -16,7 +16,6 @@ package org.openmrs.module.reportingrest.web.resource;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.Assert;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.evaluation.Evaluated;
 import org.openmrs.module.webservices.rest.web.Hyperlink;
@@ -28,6 +27,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  *
@@ -57,7 +59,7 @@ public abstract class BaseEvaluatedResourceTest<R extends EvaluatedResource<T>, 
         if (resource == null) {
             resource = newResource();
         }
-        Assert.assertNotNull("newResource must not return null", resource);
+        assertThat(resource, notNullValue());
         return resource;
     }
 

@@ -13,8 +13,6 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.openmrs.Cohort;
-import org.openmrs.annotation.Handler;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
 import org.openmrs.module.webservices.rest.web.RestConstants;

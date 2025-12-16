@@ -15,11 +15,10 @@
 package org.openmrs.module.reportingrest.adhoc;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class AdHocDataSetTest {
 
