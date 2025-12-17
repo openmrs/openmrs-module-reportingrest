@@ -17,6 +17,7 @@ import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
+import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.report.Report;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
@@ -120,8 +121,17 @@ public class ReportingRestController extends MainResourceController {
             throw new ObjectNotFoundException("Data set definition not found: " +  dataSetKey);
         }
         EvaluationContext context = new EvaluationContext();
-        for (Object parameter : request.getParameterMap().keySet()) {
-            context.addParameterValue(parameter.toString(), request.getParameter(parameter.toString()));
+        for (Parameter parameter : reportDefinition.getParameters()) {
+            String value = request.getParameter(parameter.getName());
+            if (StringUtils.isEmpty(value)) {
+                if (parameter.isRequired()) {
+                    throw new GenericRestException("Parameter " + parameter.getName() + " is required");
+                }
+            }
+            else {
+                Object convertedValue = ConversionUtil.convert(value, parameter.getType());
+                context.addParameterValue(parameter.getName(), convertedValue);
+            }
         }
         try {
             DataSet dataSet = DefinitionContext.getDataSetDefinitionService().evaluate(dataSetDefinition, context);
