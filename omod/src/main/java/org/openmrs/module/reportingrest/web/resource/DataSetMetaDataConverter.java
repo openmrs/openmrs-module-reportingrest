@@ -1,19 +1,20 @@
 package org.openmrs.module.reportingrest.web.resource;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.openmrs.annotation.Handler;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.dataset.DataSetColumn;
 import org.openmrs.module.reporting.dataset.DataSetMetaData;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Converter;
 import org.openmrs.module.webservices.rest.web.response.ConversionException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Handler(supports = DataSetMetaData.class, order = 0)
 public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
@@ -34,11 +35,13 @@ public class DataSetMetaDataConverter implements Converter<DataSetMetaData> {
 		// ] }
 		List<Map<String, String>> columns = new ArrayList<Map<String, String>>();
 		for (DataSetColumn column : metadata.getColumns()) {
-			Map<String, String> columnMap = new HashMap<String, String>();
-			columnMap.put("name", column.getName());
-			columnMap.put("label", column.getLabel());
-			columnMap.put("datatype", column.getDataType() != null ? column.getDataType().getName() : null);
-			columns.add(columnMap);
+			Map<String, String> m = new HashMap<String, String>();
+			m.put("name", column.getName());
+			m.put("label", column.getLabel());
+			m.put("datatype", column.getDataType() != null ? column.getDataType().getName() : null);
+			String labelOrName = (column.getLabel() == null ? column.getName() : column.getLabel());
+			m.put("display", Context.getMessageSourceService().getMessage(labelOrName));
+			columns.add(m);
 		}
 
 		return new SimpleObject().add("columns", columns);
