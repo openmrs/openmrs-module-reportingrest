@@ -12,21 +12,39 @@ package org.openmrs.module.reportingrest.web.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
+import org.openmrs.module.reporting.dataset.DataSet;
+import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
+import org.openmrs.module.reporting.definition.DefinitionContext;
+import org.openmrs.module.reporting.evaluation.EvaluationContext;
+import org.openmrs.module.reporting.evaluation.parameter.Mapped;
+import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.report.Report;
 import org.openmrs.module.reporting.report.ReportRequest;
+import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.ReportFile;
+import org.openmrs.module.webservices.rest.SimpleObject;
+import org.openmrs.module.webservices.rest.web.ConversionUtil;
+import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.RestUtil;
+import org.openmrs.module.webservices.rest.web.representation.Representation;
+import org.openmrs.module.webservices.rest.web.response.GenericRestException;
+import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +98,49 @@ public class ReportingRestController extends MainResourceController {
         }
 
         return fileDownloadList;
+    }
+
+    @RequestMapping(value = "/reportDataSet/{reportDefinitionUuid}/{dataSetKey}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public SimpleObject evaluateReportDataSet(HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              @PathVariable String reportDefinitionUuid,
+                                              @PathVariable String dataSetKey) {
+        ReportDefinition reportDefinition = DefinitionContext.getReportDefinitionService().getDefinitionByUuid(reportDefinitionUuid);
+        if (reportDefinition == null) {
+            throw new ObjectNotFoundException("Report definition not found: " +  reportDefinitionUuid);
+        }
+        Mapped<? extends DataSetDefinition> dataSetDefinition = null;
+        for (String key : reportDefinition.getDataSetDefinitions().keySet()) {
+            if (key.equals(dataSetKey)) {
+                dataSetDefinition = reportDefinition.getDataSetDefinitions().get(key);
+            }
+        }
+        if (dataSetDefinition == null) {
+            throw new ObjectNotFoundException("Data set definition not found: " +  dataSetKey);
+        }
+        EvaluationContext context = new EvaluationContext();
+        for (Parameter parameter : reportDefinition.getParameters()) {
+            String value = request.getParameter(parameter.getName());
+            if (StringUtils.isEmpty(value)) {
+                if (parameter.isRequired()) {
+                    throw new GenericRestException("Parameter " + parameter.getName() + " is required");
+                }
+            }
+            else {
+                Object convertedValue = ConversionUtil.convert(value, parameter.getType());
+                context.addParameterValue(parameter.getName(), convertedValue);
+            }
+        }
+        try {
+            DataSet dataSet = DefinitionContext.getDataSetDefinitionService().evaluate(dataSetDefinition, context);
+            RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.DEFAULT);
+            return (SimpleObject) ConversionUtil.convertToRepresentation(dataSet, requestContext.getRepresentation());
+        }
+        catch (Exception e) {
+            throw new GenericRestException(e);
+        }
     }
 
     private ReportFile processAndDownloadReport(String reportRequestUuid, ReportService reportService) {

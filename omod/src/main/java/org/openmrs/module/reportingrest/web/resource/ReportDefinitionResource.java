@@ -13,13 +13,20 @@
  */
 package org.openmrs.module.reportingrest.web.resource;
 
+import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
+import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.controller.ReportingRestController;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.BaseDelegatingResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * {@link Resource} for {@link ReportDefinition}s, supporting standard CRUD operations
@@ -40,7 +47,28 @@ public class ReportDefinitionResource extends BaseDefinitionResource<ReportDefin
 	 */
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation rep) {
-		// TODO, add more properties here, eg. DSDs and BaseCohort
-		return super.getRepresentationDescription(rep); 
+		DelegatingResourceDescription description = super.getRepresentationDescription(rep);
+		if (description != null) {
+			description.addProperty("dataSetDefinitions");
+			description.addProperty("reportDesigns");
+		}
+		return description;
+	}
+
+	@PropertyGetter("dataSetDefinitions")
+	public Object getDataSetDefinitions(ReportDefinition delegate) {
+		List<SimpleObject> result = new ArrayList<>();
+		for (String key : delegate.getDataSetDefinitions().keySet()) {
+			SimpleObject mappedDsd = new SimpleObject();
+			mappedDsd.put("key", key);
+			mappedDsd.put("value", delegate.getDataSetDefinitions().get(key));
+			result.add(mappedDsd);
+		}
+		return result;
+	}
+
+	@PropertyGetter("reportDesigns")
+	public Object getReportDesigns(ReportDefinition delegate) {
+		return Context.getService(ReportService.class).getReportDesigns(delegate, null, false);
 	}
 }
