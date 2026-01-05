@@ -61,6 +61,7 @@ public class ReportDefinitionResource extends BaseDefinitionResource<ReportDefin
 		for (String key : delegate.getDataSetDefinitions().keySet()) {
 			SimpleObject mappedDsd = new SimpleObject();
 			mappedDsd.put("key", key);
+			mappedDsd.put("display", Context.getMessageSourceService().getMessage(key));
 			mappedDsd.put("value", delegate.getDataSetDefinitions().get(key));
 			result.add(mappedDsd);
 		}
