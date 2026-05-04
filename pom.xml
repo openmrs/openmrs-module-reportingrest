@@ -24,7 +24,7 @@
 	</modules>
 
     <properties>
-        <openMRSVersion>2.7.0</openMRSVersion>
+        <openMRSVersion>2.7.9</openMRSVersion>
         <webservicesRestVersion>2.50.0</webservicesRestVersion>
         <reportingVersion>2.0.0</reportingVersion>
         <htmlwidgetsVersion>2.0.1</htmlwidgetsVersion>
