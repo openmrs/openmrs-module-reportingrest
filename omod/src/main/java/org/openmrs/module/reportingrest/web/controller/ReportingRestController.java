@@ -148,52 +148,38 @@ public class ReportingRestController extends MainResourceController {
         }
     }
 
-    /**
-     * Synchronously evaluates a report definition and renders it, streaming the result directly
-     * in the HTTP response. Report parameters are passed as additional request parameters.
-     *
-     * Example: POST /reportingrest/runReport?reportDefinitionUuid=xxx&reportDesignUuid=yyy&myParam=value
-     */
-    @RequestMapping(value = "/runReport")
-    public void runReport(@RequestParam String reportDefinition,
-                          @RequestParam String reportDesign,
-                          HttpServletRequest request,
-                          HttpServletResponse response) throws Exception {
+    @RequestMapping(value = "/runReport/{reportDefinitionUuid}", method = RequestMethod.POST)
+    @ResponseBody
+    public SimpleObject runReportAsJson(@PathVariable String reportDefinitionUuid,
+                                        HttpServletRequest request,
+                                        HttpServletResponse response) throws Exception {
+        ReportDefinition definition = getDefinitionByUuid(reportDefinitionUuid);
+        EvaluationContext evalContext = buildEvaluationContext(definition, request);
+        ReportData reportData = evaluateReport(definition, evalContext);
+        RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.DEFAULT);
+        return (SimpleObject) ConversionUtil.convertToRepresentation(reportData, requestContext.getRepresentation());
+    }
 
-        ReportDefinitionService definitionService = Context.getService(ReportDefinitionService.class);
-        ReportDefinition definition = definitionService.getDefinitionByUuid(reportDefinition);
-        if (definition == null) {
-            throw new ObjectNotFoundException("ReportDefinition not found: " + reportDefinition);
-        }
+    @RequestMapping(value = "/runReport/{reportDefinitionUuid}/{reportDesignUuid}", method = RequestMethod.POST)
+    public void runReportWithDesign(@PathVariable String reportDefinitionUuid,
+                                    @PathVariable String reportDesignUuid,
+                                    HttpServletRequest request,
+                                    HttpServletResponse response) throws Exception {
+        ReportDefinition definition = getDefinitionByUuid(reportDefinitionUuid);
+        EvaluationContext evalContext = buildEvaluationContext(definition, request);
 
-        EvaluationContext evalContext = new EvaluationContext();
-        for (Parameter param : definition.getParameters()) {
-            String value = request.getParameter(param.getName());
-            if (value != null) {
-                evalContext.addParameterValue(param.getName(), ConversionUtil.convert(value, param.getType()));
-            } else if (param.isRequired()) {
-                throw new IllegalArgumentException("Missing required parameter: " + param.getName());
-            }
-        }
-
-        ReportService reportService = getReportService();
         RenderingMode renderingMode = null;
-        for (RenderingMode mode : reportService.getRenderingModes(definition)) {
-            if (StringUtils.equals(mode.getArgument(), reportDesign)) {
+        for (RenderingMode mode : getReportService().getRenderingModes(definition)) {
+            if (StringUtils.equals(mode.getArgument(), reportDesignUuid)) {
                 renderingMode = mode;
                 break;
             }
         }
         if (renderingMode == null) {
-            throw new IllegalArgumentException("No rendering mode found for report design: " + reportDesign);
+            throw new IllegalArgumentException("No rendering mode found for report design: " + reportDesignUuid);
         }
 
-        ReportData reportData;
-        try {
-            reportData = definitionService.evaluate(definition, evalContext);
-        } catch (EvaluationException e) {
-            throw new GenericRestException("Failed to evaluate report: " + e.getMessage(), e);
-        }
+        ReportData reportData = evaluateReport(definition, evalContext);
 
         ReportRequest reportRequest = new ReportRequest();
         reportRequest.setReportDefinition(new Mapped<ReportDefinition>(definition, Collections.<String, Object>emptyMap()));
@@ -204,7 +190,36 @@ public class ReportingRestController extends MainResourceController {
         response.setHeader("Content-Disposition",
                 "attachment; filename=\"" + renderingMode.getRenderer().getFilename(reportRequest) + "\"");
 
-        renderingMode.getRenderer().render(reportData, reportDesign, response.getOutputStream());
+        renderingMode.getRenderer().render(reportData, reportDesignUuid, response.getOutputStream());
+    }
+
+    private ReportDefinition getDefinitionByUuid(String uuid) {
+        ReportDefinition definition = Context.getService(ReportDefinitionService.class).getDefinitionByUuid(uuid);
+        if (definition == null) {
+            throw new ObjectNotFoundException("ReportDefinition not found: " + uuid);
+        }
+        return definition;
+    }
+
+    private EvaluationContext buildEvaluationContext(ReportDefinition definition, HttpServletRequest request) {
+        EvaluationContext evalContext = new EvaluationContext();
+        for (Parameter param : definition.getParameters()) {
+            String value = request.getParameter(param.getName());
+            if (value != null) {
+                evalContext.addParameterValue(param.getName(), ConversionUtil.convert(value, param.getType()));
+            } else if (param.isRequired()) {
+                throw new IllegalArgumentException("Missing required parameter: " + param.getName());
+            }
+        }
+        return evalContext;
+    }
+
+    private ReportData evaluateReport(ReportDefinition definition, EvaluationContext evalContext) {
+        try {
+            return Context.getService(ReportDefinitionService.class).evaluate(definition, evalContext);
+        } catch (EvaluationException e) {
+            throw new GenericRestException("Failed to evaluate report: " + e.getMessage(), e);
+        }
     }
 
     private ReportFile processAndDownloadReport(String reportRequestUuid, ReportService reportService) {

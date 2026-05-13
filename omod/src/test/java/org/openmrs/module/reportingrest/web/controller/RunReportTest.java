@@ -58,10 +58,8 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
         reportService.saveReportDesign(design);
 
         MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(),
-                "/rest/v1/reportingrest/runReport");
+                "/rest/v1/reportingrest/runReport/" + rd.getUuid() + "/" + design.getUuid());
         request.addHeader("content-type", "application/json");
-        request.setParameter("reportDefinition", rd.getUuid());
-        request.setParameter("reportDesign", design.getUuid());
 
         MockHttpServletResponse response = handle(request);
 
@@ -88,10 +86,9 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
         design.setReportDefinition(rd);
         reportService.saveReportDesign(design);
 
-        MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(), "/rest/v1/reportingrest/runReport");
+        MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(),
+                "/rest/v1/reportingrest/runReport/" + rd.getUuid() + "/" + design.getUuid());
         request.addHeader("content-type", "application/json");
-        request.setParameter("reportDefinition", rd.getUuid());
-        request.setParameter("reportDesign", design.getUuid());
 
         MockHttpServletResponse response = handle(request);
 
@@ -120,16 +117,37 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
         reportService.saveReportDesign(design);
 
         MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(),
-                "/rest/v1/reportingrest/runReport");
+                "/rest/v1/reportingrest/runReport/" + rd.getUuid() + "/" + design.getUuid());
         request.addHeader("content-type", "application/json");
-        request.setParameter("reportDefinition", rd.getUuid());
-        request.setParameter("reportDesign", design.getUuid());
         request.setParameter("gender", "M");
 
         MockHttpServletResponse response = handle(request);
 
         Assert.assertEquals(200, response.getStatus());
         Assert.assertTrue(response.getContentType().contains("text/csv"));
+    }
+
+    @Test
+    public void runReport_shouldReturnJsonWhenNoDesignSpecified() throws Exception {
+        SqlDataSetDefinition dsd = new SqlDataSetDefinition();
+        dsd.setName("counts");
+        dsd.setSqlQuery("select count(*) as total_persons from person where voided = 0");
+
+        ReportDefinition rd = new ReportDefinition();
+        rd.setName("Test JSON Report");
+        rd.addDataSetDefinition("counts", dsd, ParameterizableUtil.createParameterMappings(""));
+        reportDefinitionService.saveDefinition(rd);
+
+        MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(),
+                "/rest/v1/reportingrest/runReport/" + rd.getUuid());
+        request.addHeader("content-type", "application/json");
+
+        MockHttpServletResponse response = handle(request);
+
+        Assert.assertEquals(200, response.getStatus());
+        Assert.assertTrue(response.getContentType().contains("application/json"));
+        String body = response.getContentAsString();
+        Assert.assertTrue(body.contains("dataSets"));
     }
 
     MockHttpServletResponse handle(HttpServletRequest request) throws Exception {
