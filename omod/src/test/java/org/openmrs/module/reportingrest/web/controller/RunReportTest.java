@@ -7,11 +7,11 @@ import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.evaluation.parameter.ParameterizableUtil;
 import org.openmrs.module.reporting.report.ReportDesign;
-import org.openmrs.module.reporting.report.ReportDesignResource;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
 import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.renderer.CsvReportRenderer;
 import org.openmrs.module.reporting.report.service.ReportService;
+import org.openmrs.module.webservices.rest.OpenmrsPathMatcher;
 import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -20,10 +20,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.openmrs.module.webservices.rest.OpenmrsPathMatcher;
 
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class RunReportTest extends BaseModuleWebContextSensitiveTest {
@@ -62,8 +60,8 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
         MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(),
                 "/rest/v1/reportingrest/runReport");
         request.addHeader("content-type", "application/json");
-        request.setParameter("reportDefinitionUuid", rd.getUuid());
-        request.setParameter("reportDesignUuid", design.getUuid());
+        request.setParameter("reportDefinition", rd.getUuid());
+        request.setParameter("reportDesign", design.getUuid());
 
         MockHttpServletResponse response = handle(request);
 
@@ -74,7 +72,7 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
     }
 
     @Test
-    public void runReport_shouldRenderHtmlTemplateToPdf() throws Exception {
+    public void runReport_shouldRenderHtmlTemplateToExcel() throws Exception {
         SqlDataSetDefinition dsd = new SqlDataSetDefinition();
         dsd.setName("info");
         dsd.setSqlQuery("select 'hello' as greeting");
@@ -84,32 +82,21 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
         rd.addDataSetDefinition("info", dsd, ParameterizableUtil.createParameterMappings(""));
         reportDefinitionService.saveDefinition(rd);
 
-        String html = "<!DOCTYPE html><html><body><p>#greeting#</p></body></html>";
-
-        ReportDesignResource templateResource = new ReportDesignResource();
-        templateResource.setName("template");
-        templateResource.setExtension("html");
-        templateResource.setContentType("text/html");
-        templateResource.setContents(html.getBytes(StandardCharsets.UTF_8));
-
         ReportDesign design = new ReportDesign();
-        design.setName("PDF Label");
-        design.setRendererType(org.openmrs.module.reporting.report.renderer.PdfTemplateRenderer.class);
+        design.setName("Excel");
+        design.setRendererType(org.openmrs.module.reporting.report.renderer.XlsReportRenderer.class);
         design.setReportDefinition(rd);
-        design.addResource(templateResource);
-        templateResource.setReportDesign(design);
         reportService.saveReportDesign(design);
 
-        MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(),
-                "/rest/v1/reportingrest/runReport");
+        MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(), "/rest/v1/reportingrest/runReport");
         request.addHeader("content-type", "application/json");
-        request.setParameter("reportDefinitionUuid", rd.getUuid());
-        request.setParameter("reportDesignUuid", design.getUuid());
+        request.setParameter("reportDefinition", rd.getUuid());
+        request.setParameter("reportDesign", design.getUuid());
 
         MockHttpServletResponse response = handle(request);
 
         Assert.assertEquals(200, response.getStatus());
-        Assert.assertEquals("application/pdf", response.getContentType());
+        Assert.assertEquals("application/vnd.ms-excel", response.getContentType());
         Assert.assertTrue(response.getContentAsByteArray().length > 0);
     }
 
@@ -135,8 +122,8 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
         MockHttpServletRequest request = new MockHttpServletRequest(RequestMethod.POST.toString(),
                 "/rest/v1/reportingrest/runReport");
         request.addHeader("content-type", "application/json");
-        request.setParameter("reportDefinitionUuid", rd.getUuid());
-        request.setParameter("reportDesignUuid", design.getUuid());
+        request.setParameter("reportDefinition", rd.getUuid());
+        request.setParameter("reportDesign", design.getUuid());
         request.setParameter("gender", "M");
 
         MockHttpServletResponse response = handle(request);

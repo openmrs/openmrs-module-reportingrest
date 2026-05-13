@@ -154,16 +154,16 @@ public class ReportingRestController extends MainResourceController {
      *
      * Example: POST /reportingrest/runReport?reportDefinitionUuid=xxx&reportDesignUuid=yyy&myParam=value
      */
-    @RequestMapping(value = "/runReport", method = RequestMethod.POST)
-    public void runReport(@RequestParam String reportDefinitionUuid,
-                          @RequestParam String reportDesignUuid,
+    @RequestMapping(value = "/runReport")
+    public void runReport(@RequestParam String reportDefinition,
+                          @RequestParam String reportDesign,
                           HttpServletRequest request,
                           HttpServletResponse response) throws Exception {
 
         ReportDefinitionService definitionService = Context.getService(ReportDefinitionService.class);
-        ReportDefinition definition = definitionService.getDefinitionByUuid(reportDefinitionUuid);
+        ReportDefinition definition = definitionService.getDefinitionByUuid(reportDefinition);
         if (definition == null) {
-            throw new ObjectNotFoundException("ReportDefinition not found: " + reportDefinitionUuid);
+            throw new ObjectNotFoundException("ReportDefinition not found: " + reportDefinition);
         }
 
         EvaluationContext evalContext = new EvaluationContext();
@@ -179,13 +179,13 @@ public class ReportingRestController extends MainResourceController {
         ReportService reportService = getReportService();
         RenderingMode renderingMode = null;
         for (RenderingMode mode : reportService.getRenderingModes(definition)) {
-            if (StringUtils.equals(mode.getArgument(), reportDesignUuid)) {
+            if (StringUtils.equals(mode.getArgument(), reportDesign)) {
                 renderingMode = mode;
                 break;
             }
         }
         if (renderingMode == null) {
-            throw new IllegalArgumentException("No rendering mode found for report design: " + reportDesignUuid);
+            throw new IllegalArgumentException("No rendering mode found for report design: " + reportDesign);
         }
 
         ReportData reportData;
@@ -204,7 +204,7 @@ public class ReportingRestController extends MainResourceController {
         response.setHeader("Content-Disposition",
                 "attachment; filename=\"" + renderingMode.getRenderer().getFilename(reportRequest) + "\"");
 
-        renderingMode.getRenderer().render(reportData, reportDesignUuid, response.getOutputStream());
+        renderingMode.getRenderer().render(reportData, reportDesign, response.getOutputStream());
     }
 
     private ReportFile processAndDownloadReport(String reportRequestUuid, ReportService reportService) {
