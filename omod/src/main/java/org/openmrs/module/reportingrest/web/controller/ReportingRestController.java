@@ -16,11 +16,14 @@ import org.openmrs.module.reporting.dataset.DataSet;
 import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
+import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.report.Report;
+import org.openmrs.module.reporting.report.ReportData;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
+import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.ReportFile;
@@ -46,6 +49,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -140,6 +145,80 @@ public class ReportingRestController extends MainResourceController {
         }
         catch (Exception e) {
             throw new GenericRestException(e);
+        }
+    }
+
+    @RequestMapping(value = "/runReport/{reportDefinitionUuid}", method = RequestMethod.POST)
+    @ResponseBody
+    public SimpleObject runReportAsJson(@PathVariable String reportDefinitionUuid,
+                                        HttpServletRequest request,
+                                        HttpServletResponse response) throws Exception {
+        ReportDefinition definition = getDefinitionByUuid(reportDefinitionUuid);
+        EvaluationContext evalContext = buildEvaluationContext(definition, request);
+        ReportData reportData = evaluateReport(definition, evalContext);
+        RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.DEFAULT);
+        return (SimpleObject) ConversionUtil.convertToRepresentation(reportData, requestContext.getRepresentation());
+    }
+
+    @RequestMapping(value = "/runReport/{reportDefinitionUuid}/{reportDesignUuid}", method = RequestMethod.POST)
+    public void runReportWithDesign(@PathVariable String reportDefinitionUuid,
+                                    @PathVariable String reportDesignUuid,
+                                    HttpServletRequest request,
+                                    HttpServletResponse response) throws Exception {
+        ReportDefinition definition = getDefinitionByUuid(reportDefinitionUuid);
+        EvaluationContext evalContext = buildEvaluationContext(definition, request);
+
+        RenderingMode renderingMode = null;
+        for (RenderingMode mode : getReportService().getRenderingModes(definition)) {
+            if (StringUtils.equals(mode.getArgument(), reportDesignUuid)) {
+                renderingMode = mode;
+                break;
+            }
+        }
+        if (renderingMode == null) {
+            throw new IllegalArgumentException("No rendering mode found for report design: " + reportDesignUuid);
+        }
+
+        ReportData reportData = evaluateReport(definition, evalContext);
+
+        ReportRequest reportRequest = new ReportRequest();
+        reportRequest.setReportDefinition(new Mapped<ReportDefinition>(definition, Collections.<String, Object>emptyMap()));
+        reportRequest.setRenderingMode(renderingMode);
+        reportRequest.setEvaluateStartDatetime(new Date());
+
+        response.setContentType(renderingMode.getRenderer().getRenderedContentType(reportRequest));
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + renderingMode.getRenderer().getFilename(reportRequest) + "\"");
+
+        renderingMode.getRenderer().render(reportData, reportDesignUuid, response.getOutputStream());
+    }
+
+    private ReportDefinition getDefinitionByUuid(String uuid) {
+        ReportDefinition definition = Context.getService(ReportDefinitionService.class).getDefinitionByUuid(uuid);
+        if (definition == null) {
+            throw new ObjectNotFoundException("ReportDefinition not found: " + uuid);
+        }
+        return definition;
+    }
+
+    private EvaluationContext buildEvaluationContext(ReportDefinition definition, HttpServletRequest request) {
+        EvaluationContext evalContext = new EvaluationContext();
+        for (Parameter param : definition.getParameters()) {
+            String value = request.getParameter(param.getName());
+            if (value != null) {
+                evalContext.addParameterValue(param.getName(), ConversionUtil.convert(value, param.getType()));
+            } else if (param.isRequired()) {
+                throw new IllegalArgumentException("Missing required parameter: " + param.getName());
+            }
+        }
+        return evalContext;
+    }
+
+    private ReportData evaluateReport(ReportDefinition definition, EvaluationContext evalContext) {
+        try {
+            return Context.getService(ReportDefinitionService.class).evaluate(definition, evalContext);
+        } catch (EvaluationException e) {
+            throw new GenericRestException("Failed to evaluate report: " + e.getMessage(), e);
         }
     }
 
