@@ -16,11 +16,14 @@ import org.openmrs.module.reporting.dataset.DataSet;
 import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.definition.DefinitionContext;
 import org.openmrs.module.reporting.evaluation.EvaluationContext;
+import org.openmrs.module.reporting.evaluation.EvaluationException;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.report.Report;
+import org.openmrs.module.reporting.report.ReportData;
 import org.openmrs.module.reporting.report.ReportRequest;
 import org.openmrs.module.reporting.report.definition.ReportDefinition;
+import org.openmrs.module.reporting.report.definition.service.ReportDefinitionService;
 import org.openmrs.module.reporting.report.renderer.RenderingMode;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.reportingrest.web.ReportFile;
@@ -46,6 +49,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -141,6 +146,65 @@ public class ReportingRestController extends MainResourceController {
         catch (Exception e) {
             throw new GenericRestException(e);
         }
+    }
+
+    /**
+     * Synchronously evaluates a report definition and renders it, streaming the result directly
+     * in the HTTP response. Report parameters are passed as additional request parameters.
+     *
+     * Example: POST /reportingrest/runReport?reportDefinitionUuid=xxx&reportDesignUuid=yyy&myParam=value
+     */
+    @RequestMapping(value = "/runReport", method = RequestMethod.POST)
+    public void runReport(@RequestParam String reportDefinitionUuid,
+                          @RequestParam String reportDesignUuid,
+                          HttpServletRequest request,
+                          HttpServletResponse response) throws Exception {
+
+        ReportDefinitionService definitionService = Context.getService(ReportDefinitionService.class);
+        ReportDefinition definition = definitionService.getDefinitionByUuid(reportDefinitionUuid);
+        if (definition == null) {
+            throw new ObjectNotFoundException("ReportDefinition not found: " + reportDefinitionUuid);
+        }
+
+        EvaluationContext evalContext = new EvaluationContext();
+        for (Parameter param : definition.getParameters()) {
+            String value = request.getParameter(param.getName());
+            if (value != null) {
+                evalContext.addParameterValue(param.getName(), ConversionUtil.convert(value, param.getType()));
+            } else if (param.isRequired()) {
+                throw new IllegalArgumentException("Missing required parameter: " + param.getName());
+            }
+        }
+
+        ReportService reportService = getReportService();
+        RenderingMode renderingMode = null;
+        for (RenderingMode mode : reportService.getRenderingModes(definition)) {
+            if (StringUtils.equals(mode.getArgument(), reportDesignUuid)) {
+                renderingMode = mode;
+                break;
+            }
+        }
+        if (renderingMode == null) {
+            throw new IllegalArgumentException("No rendering mode found for report design: " + reportDesignUuid);
+        }
+
+        ReportData reportData;
+        try {
+            reportData = definitionService.evaluate(definition, evalContext);
+        } catch (EvaluationException e) {
+            throw new GenericRestException("Failed to evaluate report: " + e.getMessage(), e);
+        }
+
+        ReportRequest reportRequest = new ReportRequest();
+        reportRequest.setReportDefinition(new Mapped<ReportDefinition>(definition, Collections.<String, Object>emptyMap()));
+        reportRequest.setRenderingMode(renderingMode);
+        reportRequest.setEvaluateStartDatetime(new Date());
+
+        response.setContentType(renderingMode.getRenderer().getRenderedContentType(reportRequest));
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + renderingMode.getRenderer().getFilename(reportRequest) + "\"");
+
+        renderingMode.getRenderer().render(reportData, reportDesignUuid, response.getOutputStream());
     }
 
     private ReportFile processAndDownloadReport(String reportRequestUuid, ReportService reportService) {

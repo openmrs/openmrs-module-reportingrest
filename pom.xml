@@ -26,7 +26,7 @@
     <properties>
         <openMRSVersion>2.7.0</openMRSVersion>
         <webservicesRestVersion>2.50.0</webservicesRestVersion>
-        <reportingVersion>2.0.0</reportingVersion>
+        <reportingVersion>2.2.0-SNAPSHOT</reportingVersion>
         <htmlwidgetsVersion>2.0.1</htmlwidgetsVersion>
         <serializationxstreamVersion>0.3.0</serializationxstreamVersion>
         <calculationVersion>1.2</calculationVersion>
