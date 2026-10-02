@@ -14,9 +14,9 @@
 
 package org.openmrs.module.reportingrest.web;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.openmrs.module.reporting.query.IdSet;
 import org.openmrs.module.reportingrest.SimpleIdSet;
 

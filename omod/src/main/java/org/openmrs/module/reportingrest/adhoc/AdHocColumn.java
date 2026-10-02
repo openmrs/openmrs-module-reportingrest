@@ -14,8 +14,8 @@
 
 package org.openmrs.module.reportingrest.adhoc;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.openmrs.module.reporting.data.BaseDefinitionLibraryDataDefinition;
 import org.openmrs.module.reporting.data.patient.definition.DefinitionLibraryPatientDataDefinition;
 import org.openmrs.module.reporting.dataset.column.definition.RowPerObjectColumnDefinition;

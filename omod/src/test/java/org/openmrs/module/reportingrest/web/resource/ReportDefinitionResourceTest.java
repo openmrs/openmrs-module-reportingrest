@@ -1,7 +1,7 @@
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.reporting.evaluation.parameter.ParameterizableUtil;
@@ -23,7 +23,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ReportDefinitionResourceTest extends BaseDelegatingResourceTest<ReportDefinitionResource, ReportDefinition> {
 
@@ -39,7 +39,7 @@ public class ReportDefinitionResourceTest extends BaseDelegatingResourceTest<Rep
 
     ReportDesign reportDesign;
 
-    @Before
+    @BeforeEach
     public void setUp() {
 
         SqlDataSetDefinition dsd1 = new SqlDataSetDefinition();

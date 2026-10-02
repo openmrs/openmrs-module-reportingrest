@@ -14,8 +14,8 @@
 
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
 import org.openmrs.module.reporting.cohort.definition.GenderCohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.library.BuiltInCohortDefinitionLibrary;
@@ -27,9 +27,9 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<EvaluatedCohortResource, EvaluatedCohort> {
 
@@ -38,7 +38,7 @@ public class EvaluatedCohortResourceTest extends BaseEvaluatedResourceTest<Evalu
 
     private String UUID = "abc123";
 
-	@Before
+	@BeforeEach
 	public void before() {
 		GenderCohortDefinition cd = new GenderCohortDefinition();
 		cd.setName("Males");

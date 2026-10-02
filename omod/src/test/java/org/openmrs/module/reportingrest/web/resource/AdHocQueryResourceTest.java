@@ -14,13 +14,13 @@
 
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.openmrs.contrib.testdata.TestDataManager;
 import org.openmrs.module.reporting.cohort.definition.CohortDefinition;
 import org.openmrs.module.reporting.cohort.definition.library.BuiltInCohortDefinitionLibrary;
@@ -35,7 +35,7 @@ import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.representation.NamedRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.util.OpenmrsUtil;
-import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
+import org.openmrs.web.test.jupiter.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -72,7 +72,8 @@ public class AdHocQueryResourceTest extends BaseModuleWebContextSensitiveTest {
         assertThat(result.getResult(), hasExactlyIds(2, 6, 7)); // male OR encounter during period OR adult on date
 
         assertThat(result.getIndividualResults().get(0), hasExactlyIds(2, 6));
-        assertThat(result.getIndividualResults().get(1), hasExactlyIds(2, 7));
+        // core 3.0's standard test dataset moved patient 2's only encounter (id 6) out of the period
+        assertThat(result.getIndividualResults().get(1), hasExactlyIds(7));
         assertThat(result.getIndividualResults().get(2), hasExactlyIds(2, 6, 7));
     }
 

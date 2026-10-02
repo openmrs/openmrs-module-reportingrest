@@ -14,7 +14,7 @@
 
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.dataset.definition.RowPerObjectDataSetDefinition;
 import org.openmrs.module.reporting.definition.library.AllDefinitionLibraries;

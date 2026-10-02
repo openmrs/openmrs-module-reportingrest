@@ -14,13 +14,13 @@
 
 package org.openmrs.module.reportingrest.util;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.Test;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
 import org.openmrs.EncounterType;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
-import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
+import org.openmrs.web.test.jupiter.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

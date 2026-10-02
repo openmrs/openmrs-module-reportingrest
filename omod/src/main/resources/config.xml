@@ -9,7 +9,7 @@
 	<author>Partners In Health</author>
 	<description>RESTful Web Services for the reporting module</description>
 	<activator>${project.parent.groupId}.${project.parent.artifactId}.ModuleActivator</activator>
-	<require_version>${openMRSVersion}</require_version>
+	<require_version>3.0.0</require_version>
 	
 	<require_modules>
 	   	<require_module version="${serializationxstreamVersion}">org.openmrs.module.serialization.xstream</require_module>
