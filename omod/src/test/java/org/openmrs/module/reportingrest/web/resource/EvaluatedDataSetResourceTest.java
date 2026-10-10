@@ -14,8 +14,8 @@
 
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Cohort;
 import org.openmrs.api.LocationService;
 import org.openmrs.module.reporting.cohort.EvaluatedCohort;
@@ -58,7 +58,7 @@ public class EvaluatedDataSetResourceTest extends BaseEvaluatedResourceTest<Eval
     
     public static final String UUID_FOR_PARAMS_DSD = "uuid-for-params-dsd";
     
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         executeDataSet("DataSetDefinitionTest.xml");
         dataSetDefinitionService = DefinitionContext.getDataSetDefinitionService();

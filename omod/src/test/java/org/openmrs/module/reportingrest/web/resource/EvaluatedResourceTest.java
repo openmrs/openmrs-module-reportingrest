@@ -1,8 +1,8 @@
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.apache.struts.mock.MockHttpServletRequest;
-import org.junit.Before;
-import org.junit.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.EncounterType;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.reporting.cohort.definition.EncounterCohortDefinition;
@@ -14,7 +14,7 @@ import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
-import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
+import org.openmrs.web.test.jupiter.BaseModuleWebContextSensitiveTest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,7 +30,7 @@ public class EvaluatedResourceTest extends BaseModuleWebContextSensitiveTest {
 
     EvaluatedResource resource;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         resource = new EvaluatedResource<Evaluated<?>>() {
             @Override

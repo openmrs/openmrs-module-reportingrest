@@ -1,7 +1,7 @@
 package org.openmrs.module.reportingrest.web.controller;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.openmrs.module.reporting.dataset.definition.SqlDataSetDefinition;
 import org.openmrs.module.reporting.evaluation.parameter.Mapped;
 import org.openmrs.module.reporting.evaluation.parameter.Parameter;
@@ -12,7 +12,7 @@ import org.openmrs.module.reporting.report.definition.service.ReportDefinitionSe
 import org.openmrs.module.reporting.report.renderer.CsvReportRenderer;
 import org.openmrs.module.reporting.report.service.ReportService;
 import org.openmrs.module.webservices.rest.OpenmrsPathMatcher;
-import org.openmrs.web.test.BaseModuleWebContextSensitiveTest;
+import org.openmrs.web.test.jupiter.BaseModuleWebContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -21,7 +21,7 @@ import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public class RunReportTest extends BaseModuleWebContextSensitiveTest {
@@ -63,10 +63,10 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
 
         MockHttpServletResponse response = handle(request);
 
-        Assert.assertEquals(200, response.getStatus());
-        Assert.assertTrue(response.getContentType().contains("text/csv"));
+        Assertions.assertEquals(200, response.getStatus());
+        Assertions.assertTrue(response.getContentType().contains("text/csv"));
         String body = response.getContentAsString();
-        Assert.assertTrue(body.trim().length() > 0);
+        Assertions.assertTrue(body.trim().length() > 0);
     }
 
     @Test
@@ -92,9 +92,9 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
 
         MockHttpServletResponse response = handle(request);
 
-        Assert.assertEquals(200, response.getStatus());
-        Assert.assertEquals("application/vnd.ms-excel", response.getContentType());
-        Assert.assertTrue(response.getContentAsByteArray().length > 0);
+        Assertions.assertEquals(200, response.getStatus());
+        Assertions.assertEquals("application/vnd.ms-excel", response.getContentType());
+        Assertions.assertTrue(response.getContentAsByteArray().length > 0);
     }
 
     @Test
@@ -123,8 +123,8 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
 
         MockHttpServletResponse response = handle(request);
 
-        Assert.assertEquals(200, response.getStatus());
-        Assert.assertTrue(response.getContentType().contains("text/csv"));
+        Assertions.assertEquals(200, response.getStatus());
+        Assertions.assertTrue(response.getContentType().contains("text/csv"));
     }
 
     @Test
@@ -144,10 +144,10 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
 
         MockHttpServletResponse response = handle(request);
 
-        Assert.assertEquals(200, response.getStatus());
-        Assert.assertTrue(response.getContentType().contains("application/json"));
+        Assertions.assertEquals(200, response.getStatus());
+        Assertions.assertTrue(response.getContentType().contains("application/json"));
         String body = response.getContentAsString();
-        Assert.assertTrue(body.contains("dataSets"));
+        Assertions.assertTrue(body.contains("dataSets"));
     }
 
     MockHttpServletResponse handle(HttpServletRequest request) throws Exception {
@@ -158,7 +158,7 @@ public class RunReportTest extends BaseModuleWebContextSensitiveTest {
             chain = mapping.getHandler(request);
             if (chain != null) break;
         }
-        Assert.assertNotNull("No handler found for request URI", chain);
+        Assertions.assertNotNull(chain, "No handler found for request URI");
         handlerAdapter.handle(request, response, chain.getHandler());
         return response;
     }

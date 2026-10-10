@@ -14,8 +14,8 @@
 
 package org.openmrs.module.reportingrest.web.resource;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.module.reporting.dataset.definition.DataSetDefinition;
 import org.openmrs.module.reporting.dataset.definition.service.DataSetDefinitionService;
 import org.openmrs.module.webservices.rest.SimpleObject;
@@ -38,7 +38,7 @@ public class DataSetDefinitionResourceTest extends BaseDelegatingResourceTest<Da
     @Autowired
     DataSetDefinitionService dsdService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         executeDataSet("DataSetDefinitionTest.xml");
     }

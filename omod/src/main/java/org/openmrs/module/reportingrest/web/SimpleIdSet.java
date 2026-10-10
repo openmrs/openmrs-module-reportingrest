@@ -14,7 +14,7 @@
 
 package org.openmrs.module.reportingrest;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.openmrs.module.reporting.query.IdSet;
 
 import java.util.HashSet;
